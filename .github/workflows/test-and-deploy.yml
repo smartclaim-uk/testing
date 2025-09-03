@@ -52,7 +52,7 @@ jobs:
         BASE_URL: ${{ secrets.BASE_URL || 'https://dev2.smartclaim.uk' }}
         USER_NAME: ${{ secrets.USER_NAME }}
         PASSWORD: ${{ secrets.PASSWORD }}
-      run: uv run python -m pytest tests/draft.py -v -s --headed --browser=chromium
+      run: uv run python -m pytest tests/draft.py -v -s --browser=chromium --screenshot=on
       continue-on-error: true  # Continue even if tests fail to deploy the report
 
     - name: Setup Pages
