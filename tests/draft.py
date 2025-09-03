@@ -63,6 +63,7 @@ def test_draft_submit(page) -> None:
         logger.info(f"Generating content for Question {q_num}")
         page.locator(f"#regenerate-button-draft_questions_q_{q_num}").click()
         expect(page.locator(f"#main-content-draft_questions_q_{q_num}")).not_to_contain_text("No content", timeout=10000)
+        expect(page.locator(f"#main-content-draft_questions_q_{q_num}")).not_to_be_empty(timeout=10000)
         logger.info(f"✓ Question {q_num}: Content generated successfully")
         page.screenshot(path=f"screenshots/06_question_{q_num}_generated.png")
 
@@ -74,3 +75,5 @@ def test_draft_submit(page) -> None:
     page.screenshot(path="screenshots/07_cleanup_completed.png")
     
     logger.info("🎉 Test completed successfully!")
+
+    

@@ -1,0 +1,87 @@
+name: Run Playwright Tests and Deploy Report
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Allow manual triggering
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+
+    - name: Install dependencies
+      run: uv sync
+
+    - name: Install Playwright browsers
+      run: uv run playwright install --with-deps chromium
+
+    - name: Create screenshots directory
+      run: mkdir -p screenshots
+
+    - name: Add test files
+      run: |
+        # Create a dummy PDF for testing
+        echo "This is a test PDF content" > output.pdf
+
+    - name: Run Playwright tests
+      env:
+        BASE_URL: ${{ secrets.BASE_URL || 'https://dev2.smartclaim.uk' }}
+        USER_NAME: ${{ secrets.USER_NAME }}
+        PASSWORD: ${{ secrets.PASSWORD }}
+      run: uv run python -m pytest tests/draft.py -v -s --headed --browser=chromium
+      continue-on-error: true  # Continue even if tests fail to deploy the report
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
+    - name: Create Pages structure
+      run: |
+        mkdir -p _site
+        # Copy test report as the main report
+        cp report.html _site/report.html
+        # Copy artifacts
+        cp -r screenshots _site/screenshots 2>/dev/null || echo "No screenshots directory found"
+        cp -r test-results _site/test-results 2>/dev/null || echo "No test-results directory found" 
+        cp -r playwright-report _site/playwright-report 2>/dev/null || echo "No playwright-report directory found"
+        # Create enhanced index page
+        python .github/workflows/create-index.py
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '_site'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

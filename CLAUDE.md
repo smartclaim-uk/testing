@@ -63,3 +63,24 @@ The project uses:
 ## Test Data
 - Test files are expected in repository root (e.g., "Martian Transcript copy.docx")
 - Tests interact with staging environment by default (stg2.smartclaim.uk)
+
+## GitHub Actions CI/CD
+
+### Workflow Features
+- **Automated Testing**: Runs on push/PR to main branch
+- **HTML Report Generation**: Creates detailed test reports with screenshots
+- **GitHub Pages Deployment**: Automatically serves test reports at GitHub Pages URL
+- **Cross-platform**: Runs on Ubuntu with Chromium browser
+
+### Required Secrets
+Set these in GitHub repository settings → Secrets and variables → Actions:
+- `BASE_URL`: Target environment URL (optional, defaults to dev2.smartclaim.uk)  
+- `USER_NAME`: Test user email
+- `PASSWORD`: Test user password
+
+### Accessing Reports
+After workflow runs, test reports are available at:
+`https://[username].github.io/[repository-name]/`
+
+### Manual Workflow Trigger
+Workflow can be triggered manually via GitHub Actions tab → "Run Playwright Tests and Deploy Report" → "Run workflow"
