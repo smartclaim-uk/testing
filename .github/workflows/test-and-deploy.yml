@@ -44,8 +44,25 @@ jobs:
 
     - name: Add test files
       run: |
-        # Create a dummy PDF for testing
-        echo "This is a test PDF content" > output.pdf
+        # Create a proper test document that should process faster
+        cat > test-document.txt << 'EOF'
+        Test Document for SmartClaim Processing
+        
+        This is a simple test document containing minimal text content that should process quickly in the SmartClaim system.
+        
+        Key Information:
+        - Document Type: Test Document
+        - Content: Minimal text for fast processing
+        - Purpose: Automated testing
+        
+        This document contains enough text to trigger processing but is small enough to process quickly.
+        EOF
+        
+        # Convert to PDF using available tools or use as text file
+        cp test-document.txt output.pdf
+        
+        # Also create the original test file as backup
+        echo "SmartClaim Test Document - Simple content for automated testing." > Martian\ Transcript\ copy.docx
 
     - name: Run Playwright tests
       env:
@@ -58,9 +75,32 @@ jobs:
     - name: Setup Pages
       uses: actions/configure-pages@v4
 
-    - name: Create Pages structure
+    - name: Download existing Pages artifact (for history)
+      uses: actions/download-artifact@v4
+      with:
+        name: github-pages
+        path: existing-site/
+      continue-on-error: true
+
+    - name: Extract existing history
       run: |
         mkdir -p _site
+        # Try to extract history from existing deployment
+        if [ -d "existing-site" ]; then
+          cd existing-site
+          if [ -f "artifact.tar" ]; then
+            tar -tf artifact.tar | head -10
+            tar -xf artifact.tar report-history.json 2>/dev/null || echo "No history found"
+            if [ -f "report-history.json" ]; then
+              cp report-history.json ../_site/report-history.json
+              echo "Existing report history found and restored"
+            fi
+          fi
+          cd ..
+        fi
+
+    - name: Create Pages structure
+      run: |
         # Copy test report as the main report
         cp report.html _site/report.html 2>/dev/null || echo "No report.html found"
         # Copy artifacts with better error handling
@@ -83,12 +123,7 @@ jobs:
         else
           echo "No playwright-report directory found"
         fi
-        # List what we have
-        echo "Contents of current directory:"
-        ls -la
-        echo "Contents of _site directory:"
-        ls -la _site/
-        # Create enhanced index page
+        # Create index page with history
         python .github/workflows/create-index.py
 
     - name: Upload artifact
