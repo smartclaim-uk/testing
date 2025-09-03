@@ -73,9 +73,9 @@ def create_index_html():
         <div class="report-section">
             <h2>Latest Test Report</h2>
             <p class="timestamp">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
-            <a href="index.html" class="report-link">📊 View HTML Report</a>
-            <a href="screenshots/" class="report-link">📸 View Screenshots</a>
-            <a href="playwright-report/" class="report-link">🎭 Playwright Report</a>
+            <a href="report.html" class="report-link">📊 View HTML Report</a>
+            {"<a href=\"screenshots/\" class=\"report-link\">📸 View Screenshots</a>" if os.path.exists("_site/screenshots") and os.listdir("_site/screenshots") else "<span class=\"report-link\" style=\"background: #95a5a6;\">📸 No Screenshots</span>"}
+            {"<a href=\"playwright-report/\" class=\"report-link\">🎭 Playwright Report</a>" if os.path.exists("_site/playwright-report") else "<span class=\"report-link\" style=\"background: #95a5a6;\">🎭 No Playwright Report</span>"}
         </div>
         
         <div class="report-section">

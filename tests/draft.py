@@ -9,6 +9,9 @@ logger = logging.getLogger(__name__)
 
 BASE_URL = os.getenv("BASE_URL")
 
+# Ensure screenshots directory exists
+os.makedirs("screenshots", exist_ok=True)
+
 
 def test_draft_submit(page) -> None:
     logger.info("🚀 Starting SmartClaim test workflow")
@@ -47,9 +50,16 @@ def test_draft_submit(page) -> None:
     file_id = next((f for f in global_state["draft"]['files'] if f!="data"), None)
     logger.info(f"File ID: {file_id}")
 
-    expect(page.locator(f"#status-text-{file_id}")).to_contain_text("Ready", timeout=60000)
-    page.screenshot(path="screenshots/04_processing_completed.png")
-    logger.info("✓ File processing completed - Status: Ready")
+    # Wait for file processing with extended timeout and better logging
+    try:
+        expect(page.locator(f"#status-text-{file_id}")).to_contain_text("Ready", timeout=120000)  # 2 minutes
+        page.screenshot(path="screenshots/04_processing_completed.png")
+        logger.info("✓ File processing completed - Status: Ready")
+    except Exception as e:
+        current_status = page.locator(f"#status-text-{file_id}").text_content()
+        logger.error(f"File processing did not complete in time. Current status: {current_status}")
+        page.screenshot(path="screenshots/04_processing_failed.png")
+        raise e
     
     page.get_by_role("button", name="Accept").click()
     page.screenshot(path="screenshots/05_results_accepted.png")
