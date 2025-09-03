@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  testing:
+    build: .
+    volumes:
+      - .:/app
+      - /app/.venv
+    working_dir: /app
+    environment:
+      - PYTHONPATH=/app
+    command: uv run python main.py

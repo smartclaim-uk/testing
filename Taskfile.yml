@@ -1,0 +1,32 @@
+version: '3'
+
+tasks:
+  run:
+    desc: Run main.py
+    cmds:
+      - python main.py
+
+  docker:build:
+    desc: Build Docker image
+    cmds:
+      - docker-compose build
+
+  docker:run:
+    desc: Run application in Docker
+    cmds:
+      - docker-compose up
+
+  docker:down:
+    desc: Stop Docker containers
+    cmds:
+      - docker-compose down
+
+  test:
+    desc: Run tests with HTML report (headed mode)
+    cmds:
+      - uv run python -m pytest tests/draft.py -v -s --headed --browser=chromium
+
+  test:headless:
+    desc: Run tests with HTML report (headless mode)
+    cmds:
+      - uv run python -m pytest tests/draft.py -v -s --browser=chromium

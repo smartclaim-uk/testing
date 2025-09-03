@@ -1,0 +1,13 @@
+[project]
+name = "testing"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "playwright>=1.55.0",
+    "pytest>=8.4.1",
+    "pytest-html>=4.1.1",
+    "pytest-playwright>=0.7.0",
+    "pytest-steps>=1.8.0",
+]
