@@ -69,8 +69,12 @@ jobs:
         BASE_URL: ${{ secrets.BASE_URL || 'https://dev2.smartclaim.uk' }}
         USER_NAME: ${{ secrets.USER_NAME }}
         PASSWORD: ${{ secrets.PASSWORD }}
-      run: uv run python -m pytest tests/draft.py -v -s --browser=chromium --screenshot=on
+      run: uv run python -m pytest tests/draft.py -v -s --browser=chromium --screenshot=on --html=report.html --self-contained-html --video=on
       continue-on-error: true  # Continue even if tests fail to deploy the report
+
+    - name: Fix media links in HTML report
+      run: python .github/workflows/fix-html-media.py
+      continue-on-error: true
 
     - name: Setup Pages
       uses: actions/configure-pages@v4
@@ -103,26 +107,32 @@ jobs:
       run: |
         # Copy test report as the main report
         cp report.html _site/report.html 2>/dev/null || echo "No report.html found"
+        
         # Copy artifacts with better error handling
         if [ -d "screenshots" ]; then
           cp -r screenshots _site/screenshots
           echo "Screenshots copied successfully"
+          ls -la _site/screenshots/
         else
           mkdir -p _site/screenshots
           echo "No screenshots directory found, created empty one"
         fi
+        
         if [ -d "test-results" ]; then
           cp -r test-results _site/test-results
-          echo "Test results copied successfully"  
+          echo "Test results copied successfully"
+          find _site/test-results -name "*.webm" -exec ls -la {} \;
         else
           echo "No test-results directory found"
         fi
+        
         if [ -d "playwright-report" ]; then
           cp -r playwright-report _site/playwright-report
           echo "Playwright report copied successfully"
         else
           echo "No playwright-report directory found"
         fi
+        
         # Create index page with history
         python .github/workflows/create-index.py
 

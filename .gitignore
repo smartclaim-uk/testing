@@ -17,3 +17,4 @@ screenshots/
 .ruff_cache/
 .ruff_cache/
 .env
+test-results/

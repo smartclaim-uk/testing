@@ -58,6 +58,14 @@ def create_index_html():
     # Check available artifacts
     has_screenshots = os.path.exists('_site/screenshots') and os.listdir('_site/screenshots')
     has_playwright_report = os.path.exists('_site/playwright-report')
+    has_videos = os.path.exists('_site/test-results')
+    
+    # Count media files
+    screenshot_count = len(os.listdir('_site/screenshots')) if has_screenshots else 0
+    video_count = 0
+    if has_videos:
+        for root, dirs, files in os.walk('_site/test-results'):
+            video_count += len([f for f in files if f.endswith('.webm')])
     
     html_content = f'''<!DOCTYPE html>
 <html lang="en">
@@ -97,7 +105,8 @@ def create_index_html():
             
             <div class="report-links">
                 <a href="report.html" class="btn">📋 View Test Report</a>
-                <a href="screenshots/" class="btn{'disabled' if not has_screenshots else ''}">📸 Screenshots</a>
+                <a href="screenshots/" class="btn{'disabled' if not has_screenshots else ''}">📸 Screenshots ({screenshot_count})</a>
+                <a href="test-results/" class="btn{'disabled' if not has_videos else ''}">🎬 Videos ({video_count})</a>
                 <a href="playwright-report/" class="btn{'disabled' if not has_playwright_report else ''}">🎭 Playwright Report</a>
             </div>
         </div>
