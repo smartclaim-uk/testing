@@ -166,3 +166,11 @@ def test_draft_submit(page) -> None:
     logger.info("🎉 Test execution completed!")
 
     
+
+if __name__ == "__main__":
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False, slow_mo=1000, )
+        page = browser.new_page()
+        test_draft_submit(page)
+        browser.close()

@@ -25,12 +25,32 @@ def get_test_status():
         if os.path.exists('_site/report.html'):
             with open('_site/report.html', 'r') as f:
                 content = f.read()
-                if 'FAILED' in content or 'ERROR' in content:
+                
+                # Check for test counts in the summary section
+                import re
+                
+                # Look for patterns like "0 Failed," or "1 Failed," etc
+                failed_match = re.search(r'<span class="failed">(\d+) Failed', content)
+                passed_match = re.search(r'<span class="passed">(\d+) Passed', content)
+                error_match = re.search(r'<span class="error">(\d+) Error', content)
+                
+                # Also check for test results in data-jsonblob
+                has_tests = '"tests"' in content and '"tests": {}' not in content
+                
+                # Check if any tests failed or had errors
+                if failed_match and int(failed_match.group(1)) > 0:
                     return 'Failed'
-                elif 'PASSED' in content or 'passed' in content:
+                elif error_match and int(error_match.group(1)) > 0:
+                    return 'Failed'
+                elif passed_match and int(passed_match.group(1)) > 0:
                     return 'Passed'
+                elif not has_tests or '0/0 test done' in content:
+                    # No tests were run or completed
+                    return 'No Tests Run'
+                    
         return 'Unknown'
-    except:
+    except Exception as e:
+        print(f"Error parsing test status: {e}")
         return 'Error'
 
 def create_index_html():
@@ -90,6 +110,7 @@ def create_index_html():
         .status.passed {{ background: #dcfdf4; color: #166534; }}
         .status.failed {{ background: #fee2e2; color: #dc2626; }}
         .status.unknown {{ background: #f3f4f6; color: #6b7280; }}
+        .status.no.tests.run {{ background: #fef3c7; color: #92400e; }}
         .commit {{ font-family: monospace; background: #f6f8fa; padding: 2px 6px; border-radius: 3px; }}
     </style>
 </head>
@@ -100,14 +121,11 @@ def create_index_html():
         <div class="current-report">
             <h2>Latest Report</h2>
             <p><strong>Generated:</strong> {timestamp}</p>
-            <p><strong>Status:</strong> <span class="status {current_report['status'].lower()}">{current_report['status']}</span></p>
+            <p><strong>Status:</strong> <span class="status {current_report['status'].lower().replace(' ', '.')}">{current_report['status']}</span></p>
             <p><strong>Commit:</strong> <span class="commit">{current_report['commit']}</span> on <strong>{current_report['branch']}</strong></p>
             
             <div class="report-links">
                 <a href="report.html" class="btn">📋 View Test Report</a>
-                <a href="screenshots/" class="btn{'disabled' if not has_screenshots else ''}">📸 Screenshots ({screenshot_count})</a>
-                <a href="test-results/" class="btn{'disabled' if not has_videos else ''}">🎬 Videos ({video_count})</a>
-                <a href="playwright-report/" class="btn{'disabled' if not has_playwright_report else ''}">🎭 Playwright Report</a>
             </div>
         </div>
         
@@ -126,7 +144,7 @@ def create_index_html():
     
     # Add history rows
     for report in history:
-        status_class = report['status'].lower()
+        status_class = report['status'].lower().replace(' ', '.')
         html_content += f'''
                 <tr>
                     <td>{report['date']}</td>
