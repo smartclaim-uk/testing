@@ -13,7 +13,7 @@ BASE_URL = os.getenv("BASE_URL")
 os.makedirs("screenshots", exist_ok=True)
 
 
-def test_draft_submit(page) -> None:
+def test_draft_submit(page, module="draft", submodule="questions") -> None:
     logger.info("🚀 Starting SmartClaim test workflow")
     
     # Step 1: Login
@@ -47,7 +47,7 @@ def test_draft_submit(page) -> None:
     # Step 3: File Processing
     logger.info("Step 3: Waiting for file processing")
     global_state = json.loads(page.evaluate("window.localStorage.getItem('global_state')"))
-    file_id = next((f for f in global_state["draft"]['files'] if f!="data"), None)
+    file_id = next((f for f in global_state[module]['files'] if f!="data"), None)
     logger.info(f"File ID: {file_id}")
 
     # Wait for file processing with progressive timeout and better logging
@@ -121,12 +121,12 @@ def test_draft_submit(page) -> None:
                 logger.info(f"Attempting to generate content for Question {q_num}")
                 
                 # Check if button exists
-                button_selector = f"#regenerate-button-draft_questions_q_{q_num}"
+                button_selector = f"#regenerate-button-{module}_{submodule}_q_{q_num}"
                 if page.locator(button_selector).is_visible():
                     page.locator(button_selector).click()
                     
                     # Wait for content generation
-                    content_selector = f"#main-content-draft_questions_q_{q_num}"
+                    content_selector = f"#main-content-{module}_{submodule}_q_{q_num}"
                     expect(page.locator(content_selector)).not_to_contain_text("No content", timeout=15000)
                     expect(page.locator(content_selector)).not_to_be_empty(timeout=15000)
                     
@@ -172,5 +172,5 @@ if __name__ == "__main__":
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False, slow_mo=1000, )
         page = browser.new_page()
-        test_draft_submit(page)
+        test_draft_submit(page, module="draft", submodule="questions")
         browser.close()
