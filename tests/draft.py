@@ -51,7 +51,7 @@ def test_draft_submit(page) -> None:
     logger.info(f"File ID: {file_id}")
 
     # Wait for file processing with progressive timeout and better logging
-    def wait_for_processing(max_wait_minutes=3):
+    def wait_for_file_upload(max_wait_minutes=3):
         """Wait for file processing with progressive checks"""
         import time
         start_time = time.time()
@@ -80,7 +80,7 @@ def test_draft_submit(page) -> None:
         return False  # Timeout reached
     
     try:
-        if wait_for_processing(3):  # 3 minutes max
+        if wait_for_file_upload(3):  # 3 minutes max
             page.screenshot(path="screenshots/04_processing_completed.png")
             logger.info("✓ File processing completed successfully")
         else:
