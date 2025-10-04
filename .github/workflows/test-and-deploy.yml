@@ -1,5 +1,12 @@
 name: Run Playwright Tests and Deploy Report
 
+# Required Secrets for full functionality:
+# - USER_NAME: Test user email for SmartClaim login
+# - PASSWORD: Test user password for SmartClaim login
+# - TELEGRAM_TOKEN: Bot token from @BotFather on Telegram (optional)
+# - TELEGRAM_CHAT_ID: Chat ID where notifications should be sent (optional)
+# - BASE_URL: Target environment URL (optional, defaults to dev2.smartclaim.uk)
+
 on:
   push:
     branches: [ main, master ]
@@ -65,12 +72,47 @@ jobs:
         echo "SmartClaim Test Document - Simple content for automated testing." > Martian\ Transcript\ copy.docx
 
     - name: Run Playwright tests
+      id: test_run
       env:
-        BASE_URL: ${{ secrets.BASE_URL || 'https://dev2.smartclaim.uk' }}
+        BASE_URL: ${{ secrets.BASE_URL  }}
         USER_NAME: ${{ secrets.USER_NAME }}
         PASSWORD: ${{ secrets.PASSWORD }}
-      run: uv run python -m pytest tests/run.py -v -s --browser=chromium --screenshot=on --html=report.html --self-contained-html --video=on
+      run: |
+        if uv run python -m pytest tests/run.py -v -s --browser=chromium --screenshot=on --html=report.html --self-contained-html --video=on; then
+          echo "test_status=success" >> $GITHUB_OUTPUT
+        else
+          echo "test_status=failure" >> $GITHUB_OUTPUT
+        fi
       continue-on-error: true  # Continue even if tests fail to deploy the report
+    
+    - name: Send Telegram notification on success
+      if: steps.test_run.outputs.test_status == 'success'
+      env:
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        if [ -n "$TELEGRAM_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+          # Extract owner and repo name for Pages URL
+          REPO_OWNER="${{ github.repository_owner }}"
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+          PAGES_URL="https://${REPO_OWNER}.github.io/${REPO_NAME}/"
+          
+          MESSAGE="✅ SmartClaim tests passed successfully!%0A%0A"
+          MESSAGE="${MESSAGE}📋 Repository: ${{ github.repository }}%0A"
+          MESSAGE="${MESSAGE}🔀 Branch: ${{ github.ref_name }}%0A"
+          MESSAGE="${MESSAGE}👤 Actor: ${{ github.actor }}%0A"
+          MESSAGE="${MESSAGE}📝 Commit: ${{ github.sha }}%0A"
+          MESSAGE="${MESSAGE}📊 Report: ${PAGES_URL}%0A"
+          MESSAGE="${MESSAGE}🔗 Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=${MESSAGE}" \
+            -d "parse_mode=HTML" \
+            -d "disable_web_page_preview=true" || echo "Failed to send Telegram notification"
+        else
+          echo "Telegram credentials not configured, skipping notification"
+        fi
 
     - name: Fix media links in HTML report
       run: python .github/workflows/fix-html-media.py
