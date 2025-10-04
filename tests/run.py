@@ -34,7 +34,7 @@ def per_component(
     page.get_by_placeholder("Enter your email").press("Tab")
     page.get_by_placeholder("Enter your password").fill(os.getenv("PASSWORD"))
     page.get_by_placeholder("Enter your password").press("Enter")
-    page.screenshot(path="screenshots/02_login_completed.png")
+    page.screenshot(path=f"screenshots/{module}_{submodule}_02_login_completed.png")
     logger.info("✓ Login completed successfully")
 
     page.get_by_role("link", name=module.capitalize()).click()
@@ -135,7 +135,7 @@ def per_component(
             logger.info("✓ Submitted questions successfully")
         else:
             logger.error("⚠️ Submit button not visible - may not be needed")
-            page.screenshot(path="screenshots/06_submit_button_not_visible.png")
+            page.screenshot(path=f"screenshots/{module}_{submodule}_{mod}_06_submit_button_not_visible.png")
             raise Exception("Submit button not visible")
 
         for mod in subsubmodules:
@@ -150,12 +150,12 @@ def per_component(
                 )
 
                 logger.info(f"✓ Question {mod}: Content generated successfully")
-                page.screenshot(path=f"screenshots/06_question_{mod}_generated.png")
+                page.screenshot(path=f"screenshots/{module}_{submodule}_{mod}_06_question_{mod}_generated.png")
                 successful_questions += 1
 
             except Exception as q_error:
                 logger.error(f"Question {mod} generation failed: {q_error}")
-                page.screenshot(path=f"screenshots/06_question_{mod}_failed.png")
+                page.screenshot(path=f"screenshots/{module}_{submodule}_{mod}_06_question_{mod}_failed.png")
                 continue
 
         logger.info(
@@ -164,7 +164,7 @@ def per_component(
 
     except Exception as questions_error:
         logger.error(f"Questions generation section failed: {questions_error}")
-        page.screenshot(path="screenshots/06_questions_section_failed.png")
+        page.screenshot(path=f"screenshots/{module}_{submodule}_06_questions_section_failed.png")
 
     # Step 5: Cleanup (if file_id is available)
     logger.info("Step 5: Attempting cleanup")
@@ -174,13 +174,13 @@ def per_component(
             page.locator(delete_button_selector).click()
             page.wait_for_timeout(2000)
             logger.info("✓ Deleted file successfully")
-            page.screenshot(path="screenshots/07_cleanup_completed.png")
+            page.screenshot(path=f"screenshots/{module}_{submodule}_07_cleanup_completed.png")
         else:
             logger.info("⚠️ Delete button not found - cleanup may not be needed")
-            page.screenshot(path="screenshots/07_cleanup_not_needed.png")
+            page.screenshot(path=f"screenshots/{module}_{submodule}_07_cleanup_not_needed.png")
     except Exception as cleanup_error:
         logger.warning(f"Cleanup failed: {cleanup_error}")
-        page.screenshot(path="screenshots/07_cleanup_failed.png")
+        page.screenshot(path=f"screenshots/{module}_{submodule}_07_cleanup_failed.png")
 
     logger.info("🎉 Test execution completed!")
 
@@ -195,33 +195,37 @@ def test_draft(page) -> None:
 
 
 def test_qualify(page) -> None:
+    module = "qualify"
+    submodule = "overall_assessment"
     try:
         per_component(
             page,
-            module="qualify",
-            submodule="overall_assessment",
+            module=module,
+            submodule=submodule,
             subsubmodules=["eligibility"],
         )
     except Exception as e:
         logger.error(f"Overall assessment failed: {e}")
-        page.screenshot(path="screenshots/08_overall_assessment_failed.png")
-
+        page.screenshot(path=f"screenshots/{module}_{submodule}_08_overall_assessment_failed.png")
+    
+    submodule = "baseline_research"
     try:
         per_component(
             page,
-            module="qualify",
-            submodule="baseline_research",
+            module=module,
+            submodule=submodule,
             subsubmodules=["baseline_statements", "internet_search", "feedback"],
         )
     except Exception as e:
         logger.error(f"Baseline research failed: {e}")
-        page.screenshot(path="screenshots/08_baseline_research_failed.png")
+        page.screenshot(path=f"screenshots/{module}_{submodule}_08_baseline_research_failed.png")
 
+    submodule = "risk_factors"
     try:
         per_component(
             page,
-            module="qualify",
-            submodule="risk_factors",
+            module=module,
+            submodule=submodule,
             subsubmodules=[
                 "risk_factors",
                 "uncertainty_check",
@@ -230,18 +234,19 @@ def test_qualify(page) -> None:
         )
     except Exception as e:
         logger.error(f"Risk factors failed: {e}")
-        page.screenshot(path="screenshots/08_risk_factors_failed.png")
+        page.screenshot(path=f"screenshots/{module}_{submodule}_08_risk_factors_failed.png")
 
     try:
+        submodule = "narrative_content_coverage"
         per_component(
             page,
-            module="qualify",
-            submodule="narrative_content_coverage",
+            module=module,
+            submodule=submodule,
             subsubmodules=[ "baseline", "advance", "uncertainty", "resolution"],
         )
     except Exception as e:
         logger.error(f"Narrative content coverage failed: {e}")
-        page.screenshot(path="screenshots/08_narrative_content_coverage_failed.png")
+        page.screenshot(path=f"screenshots/{module}_{submodule}_08_narrative_content_coverage_failed.png")
 
 if __name__ == "__main__":
     from playwright.sync_api import sync_playwright
