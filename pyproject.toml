@@ -11,3 +11,10 @@ dependencies = [
     "pytest-playwright>=0.7.0",
     "pytest-steps>=1.8.0",
 ]
+
+[dependency-groups]
+dev = [
+    "autoflake>=2.3.1",
+    "black>=25.9.0",
+    "isort>=6.1.0",
+]

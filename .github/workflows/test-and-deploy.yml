@@ -69,7 +69,7 @@ jobs:
         BASE_URL: ${{ secrets.BASE_URL || 'https://dev2.smartclaim.uk' }}
         USER_NAME: ${{ secrets.USER_NAME }}
         PASSWORD: ${{ secrets.PASSWORD }}
-      run: uv run python -m pytest tests/draft.py -v -s --browser=chromium --screenshot=on --html=report.html --self-contained-html --video=on
+      run: uv run python -m pytest tests/run.py -v -s --browser=chromium --screenshot=on --html=report.html --self-contained-html --video=on
       continue-on-error: true  # Continue even if tests fail to deploy the report
 
     - name: Fix media links in HTML report

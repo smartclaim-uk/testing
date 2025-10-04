@@ -1,6 +1,7 @@
-import os
 import json
 import logging
+import os
+
 from playwright.sync_api import expect
 
 # Configure logging for better test reporting
@@ -8,23 +9,26 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BASE_URL = os.getenv("BASE_URL")
-
+GENERATE_WAIT_TIMEOUT = 5 # minutes
+UPLOAD_WAIT_TIMEOUT = 3 # minutes
 # Ensure screenshots directory exists
 os.makedirs("screenshots", exist_ok=True)
 
 
-def test_draft_submit(page, module="draft", submodule="questions") -> None:
-    logger.info("🚀 Starting SmartClaim test workflow")
-    
+def per_component(
+    page, module="draft", submodule="questions", subsubmodules=[1, 2, 3, 4, 5]
+) -> None:
+    logger.info(f"🚀 Starting {module} {submodule} test workflow")
+
     # Step 1: Login
     logger.info("Step 1: Performing login")
     page.goto(url=BASE_URL)
     page.screenshot(path="screenshots/01_homepage.png")
     logger.info("✓ Navigated to homepage")
-    
+
     page.get_by_role("button", name="arrow left to bracket outline").click()
     logger.info("✓ Clicked login button")
-    
+
     page.get_by_placeholder("Enter your email").click()
     page.get_by_placeholder("Enter your email").fill(os.getenv("USER_NAME"))
     page.get_by_placeholder("Enter your email").press("Tab")
@@ -32,53 +36,62 @@ def test_draft_submit(page, module="draft", submodule="questions") -> None:
     page.get_by_placeholder("Enter your password").press("Enter")
     page.screenshot(path="screenshots/02_login_completed.png")
     logger.info("✓ Login completed successfully")
-    
+
+    page.get_by_role("link", name=module.capitalize()).click()
+
     # Step 2: File Upload
     logger.info("Step 2: Uploading file")
     page.get_by_role("button", name="Select Files").set_input_files("output.pdf")
     page.screenshot(path="screenshots/03_file_uploaded.png")
     logger.info("✓ File uploaded successfully")
-    
+
     page.get_by_role("button", name="Select Files").press("ControlOrMeta+-")
     page.locator("div").filter(has_text="We are using cookies to").nth(3).click()
-    page.get_by_role("combobox").select_option("gpt-5-chat")
-    logger.info("✓ Selected GPT-5 chat model")
-    
+    if module == "draft":
+        page.get_by_role("combobox").select_option("gpt-5-chat")
+        logger.info("✓ Selected GPT-5 chat model")
+    else:
+        logger.info("using default gpt-4o model")
     # Step 3: File Processing
     logger.info("Step 3: Waiting for file processing")
-    global_state = json.loads(page.evaluate("window.localStorage.getItem('global_state')"))
-    file_id = next((f for f in global_state[module]['files'] if f!="data"), None)
+    global_state = json.loads(
+        page.evaluate("window.localStorage.getItem('global_state')")
+    )
+    file_id = next((f for f in global_state[module]["files"] if f != "data"), None)
     logger.info(f"File ID: {file_id}")
 
     # Wait for file processing with progressive timeout and better logging
-    def wait_for_file_upload(max_wait_minutes=3):
+    def wait_for_file_upload(max_wait_minutes=UPLOAD_WAIT_TIMEOUT):
         """Wait for file processing with progressive checks"""
         import time
+
         start_time = time.time()
         max_wait_seconds = max_wait_minutes * 60
         check_interval = 10  # Check every 10 seconds
-        
+
         while (time.time() - start_time) < max_wait_seconds:
             try:
                 current_status = page.locator(f"#status-text-{file_id}").text_content()
                 logger.info(f"Current processing status: {current_status}")
-                
+
                 if "Ready" in current_status:
                     logger.info("✓ File processing completed - Status: Ready")
                     return True
                 elif "Error" in current_status or "Failed" in current_status:
-                    logger.error(f"File processing failed with status: {current_status}")
+                    logger.error(
+                        f"File processing failed with status: {current_status}"
+                    )
                     return False
-                    
+
                 # Wait before next check
                 time.sleep(check_interval)
-                
+
             except Exception as check_error:
                 logger.warning(f"Error checking status: {check_error}")
                 time.sleep(check_interval)
-                
+
         return False  # Timeout reached
-    
+
     try:
         if wait_for_file_upload(3):  # 3 minutes max
             page.screenshot(path="screenshots/04_processing_completed.png")
@@ -87,16 +100,18 @@ def test_draft_submit(page, module="draft", submodule="questions") -> None:
             current_status = page.locator(f"#status-text-{file_id}").text_content()
             logger.error(f"File processing timed out. Final status: {current_status}")
             page.screenshot(path="screenshots/04_processing_timeout.png")
-            
+
             # Continue with the test anyway to generate report
-            logger.info("⚠️ Continuing test despite processing timeout for report generation")
+            logger.info(
+                "⚠️ Continuing test despite processing timeout for report generation"
+            )
     except Exception as e:
         current_status = page.locator(f"#status-text-{file_id}").text_content()
         logger.error(f"File processing error: {e}. Current status: {current_status}")
         page.screenshot(path="screenshots/04_processing_failed.png")
         # Continue with the test to generate useful report
         logger.info("⚠️ Continuing test despite processing error for report generation")
-    
+
     # Try to accept results if Accept button is available
     try:
         accept_button = page.get_by_role("button", name="Accept")
@@ -113,36 +128,40 @@ def test_draft_submit(page, module="draft", submodule="questions") -> None:
     # Step 4: Test Questions Generation (if available)
     logger.info("Step 4: Testing question generation")
     try:
-        questions = [1, 2, 3, 4, 5]
         successful_questions = 0
-        
-        for q_num in questions:
+        submit_button = page.get_by_role("button", name="Submit")
+        if submit_button.is_visible():
+            submit_button.click()
+            logger.info("✓ Submitted questions successfully")
+        else:
+            logger.error("⚠️ Submit button not visible - may not be needed")
+            page.screenshot(path="screenshots/06_submit_button_not_visible.png")
+            raise Exception("Submit button not visible")
+
+        for mod in subsubmodules:
             try:
-                logger.info(f"Attempting to generate content for Question {q_num}")
-                
-                # Check if button exists
-                button_selector = f"#regenerate-button-{module}_{submodule}_q_{q_num}"
-                if page.locator(button_selector).is_visible():
-                    page.locator(button_selector).click()
-                    
-                    # Wait for content generation
-                    content_selector = f"#main-content-{module}_{submodule}_q_{q_num}"
-                    expect(page.locator(content_selector)).not_to_contain_text("No content", timeout=15000)
-                    expect(page.locator(content_selector)).not_to_be_empty(timeout=15000)
-                    
-                    logger.info(f"✓ Question {q_num}: Content generated successfully")
-                    page.screenshot(path=f"screenshots/06_question_{q_num}_generated.png")
-                    successful_questions += 1
-                else:
-                    logger.warning(f"Question {q_num} regenerate button not found")
-                    
+                logger.info(f"Attempting to generate content for Question {mod}")
+                content_selector = f"#main-content-{module}_{submodule}_{mod}"
+                expect(page.locator(content_selector)).not_to_contain_text(
+                    "No content", timeout=GENERATE_WAIT_TIMEOUT * 60 * 1000
+                )
+                expect(page.locator(content_selector)).not_to_be_empty(
+                    timeout=GENERATE_WAIT_TIMEOUT * 60 * 1000
+                )
+
+                logger.info(f"✓ Question {mod}: Content generated successfully")
+                page.screenshot(path=f"screenshots/06_question_{mod}_generated.png")
+                successful_questions += 1
+
             except Exception as q_error:
-                logger.warning(f"Question {q_num} generation failed: {q_error}")
-                page.screenshot(path=f"screenshots/06_question_{q_num}_failed.png")
+                logger.error(f"Question {mod} generation failed: {q_error}")
+                page.screenshot(path=f"screenshots/06_question_{mod}_failed.png")
                 continue
-        
-        logger.info(f"✓ Successfully generated {successful_questions}/{len(questions)} questions")
-        
+
+        logger.info(
+            f"✓ Successfully generated {successful_questions}/{len(subsubmodules)} questions"
+        )
+
     except Exception as questions_error:
         logger.error(f"Questions generation section failed: {questions_error}")
         page.screenshot(path="screenshots/06_questions_section_failed.png")
@@ -162,15 +181,84 @@ def test_draft_submit(page, module="draft", submodule="questions") -> None:
     except Exception as cleanup_error:
         logger.warning(f"Cleanup failed: {cleanup_error}")
         page.screenshot(path="screenshots/07_cleanup_failed.png")
-    
+
     logger.info("🎉 Test execution completed!")
 
-    
+
+def test_draft(page) -> None:
+    per_component(
+        page,
+        module="draft",
+        submodule="questions",
+        subsubmodules=["q_1", "q_2", "q_3", "q_4", "q_5"],
+    )
+
+
+def test_qualify(page) -> None:
+    try:
+        per_component(
+            page,
+            module="qualify",
+            submodule="overall_assessment",
+            subsubmodules=["eligibility"],
+        )
+    except Exception as e:
+        logger.error(f"Overall assessment failed: {e}")
+        page.screenshot(path="screenshots/08_overall_assessment_failed.png")
+
+    try:
+        per_component(
+            page,
+            module="qualify",
+            submodule="baseline_research",
+            subsubmodules=["baseline_statements", "internet_search", "feedback"],
+        )
+    except Exception as e:
+        logger.error(f"Baseline research failed: {e}")
+        page.screenshot(path="screenshots/08_baseline_research_failed.png")
+
+    try:
+        per_component(
+            page,
+            module="qualify",
+            submodule="risk_factors",
+            subsubmodules=[
+                "risk_factors",
+                "uncertainty_check",
+                "qualifying_activity",
+            ],
+        )
+    except Exception as e:
+        logger.error(f"Risk factors failed: {e}")
+        page.screenshot(path="screenshots/08_risk_factors_failed.png")
+
+    try:
+        per_component(
+            page,
+            module="qualify",
+            submodule="narrative_content_coverage",
+            subsubmodules=[ "baseline", "advance", "uncertainty", "resolution"],
+        )
+    except Exception as e:
+        logger.error(f"Narrative content coverage failed: {e}")
+        page.screenshot(path="screenshots/08_narrative_content_coverage_failed.png")
 
 if __name__ == "__main__":
     from playwright.sync_api import sync_playwright
+
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False, slow_mo=1000, )
+        browser = p.chromium.launch(
+            headless=False,
+            slow_mo=500,
+        )
         page = browser.new_page()
-        test_draft_submit(page, module="draft", submodule="questions")
+        per_component(
+            page,
+            module="qualify",
+            submodule="overall_assessment",
+            subsubmodules=["eligibility"],
+        )
         browser.close()
+
+
+

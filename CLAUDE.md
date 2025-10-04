@@ -26,7 +26,7 @@ The project uses:
 - `task test` - Run tests with browser visible (headed mode)
 - `task test:headless` - Run tests in background (headless mode)
 - `task test:ci` - Run tests for CI environment (headless with screenshots)
-- `uv run python -m pytest tests/draft.py -v -s --headed --browser=chromium` - Direct pytest command
+- `uv run python -m pytest tests/run.py -v -s --headed --browser=chromium` - Direct pytest command
 
 ### Playwright Setup
 - `uv run playwright install --with-deps` - Install Playwright browsers and dependencies
@@ -45,7 +45,7 @@ The project uses:
 ## Architecture
 
 ### Test Structure
-- `/tests/draft.py` - Main test file containing Playwright automation
+- `/tests/run.py` - Main test file containing Playwright automation
 - Test performs login flow, file upload, and status verification on SmartClaim platform
 - Uses explicit waits and expects for reliable test execution
 

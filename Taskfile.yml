@@ -24,14 +24,14 @@ tasks:
   test:
     desc: Run tests with HTML report (headed mode)
     cmds:
-      - uv run python -m pytest tests/draft.py -v -s --headed --browser=chromium
+      - uv run python -m pytest tests/run.py -v -s --headed --browser=chromium
 
   test:headless:
     desc: Run tests with HTML report (headless mode)
     cmds:
-      - uv run python -m pytest tests/draft.py -v -s --browser=chromium
+      - uv run python -m pytest tests/run.py -v -s --browser=chromium
       
   test:ci:
     desc: Run tests for CI environment (headless, with screenshots)
     cmds:
-      - uv run python -m pytest tests/draft.py -v -s --browser=chromium --screenshot=on
+      - uv run python -m pytest tests/run.py -v -s --browser=chromium --screenshot=on
