@@ -9,16 +9,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BASE_URL = os.getenv("BASE_URL")
-GENERATE_WAIT_TIMEOUT = 5 # minutes
-UPLOAD_WAIT_TIMEOUT = 3 # minutes
+GENERATE_WAIT_TIMEOUT = 5  # minutes
+UPLOAD_WAIT_TIMEOUT = 3  # minutes
 # Ensure screenshots directory exists
 os.makedirs("screenshots", exist_ok=True)
 
 
-def per_component(
-    page, module="draft", submodule="questions", subsubmodules=[1, 2, 3, 4, 5]
-) -> None:
-    logger.info(f"🚀 Starting {module} {submodule} test workflow")
+def per_component(page, module: str, submodules: dict[str, list[str]]) -> None:
+    logger.info(f"🚀 Starting {module} {submodules} test workflow")
 
     # Step 1: Login
     logger.info("Step 1: Performing login")
@@ -34,7 +32,7 @@ def per_component(
     page.get_by_placeholder("Enter your email").press("Tab")
     page.get_by_placeholder("Enter your password").fill(os.getenv("PASSWORD"))
     page.get_by_placeholder("Enter your password").press("Enter")
-    page.screenshot(path=f"screenshots/{module}_{submodule}_02_login_completed.png")
+    page.screenshot(path=f"screenshots/{module}_02_login_completed.png")
     logger.info("✓ Login completed successfully")
 
     page.get_by_role("link", name=module.capitalize()).click()
@@ -125,46 +123,59 @@ def per_component(
         logger.warning(f"Could not click Accept button: {e}")
         page.screenshot(path="screenshots/05_accept_failed.png")
 
-    # Step 4: Test Questions Generation (if available)
-    logger.info("Step 4: Testing question generation")
+    # Step 4: Test Submodules Generation (if available)
+    logger.info("Step 4: Testing submodules generation")
     try:
-        successful_questions = 0
+        successful_subsubmods = 0
         submit_button = page.get_by_role("button", name="Submit")
         if submit_button.is_visible():
             submit_button.click()
-            logger.info("✓ Submitted questions successfully")
+            logger.info("✓ Submitted submodules successfully")
         else:
             logger.error("⚠️ Submit button not visible - may not be needed")
-            page.screenshot(path=f"screenshots/{module}_{submodule}_{mod}_06_submit_button_not_visible.png")
+            page.screenshot(
+                path=f"screenshots/{module}_06_submit_button_not_visible.png"
+            )
             raise Exception("Submit button not visible")
 
-        for mod in subsubmodules:
-            try:
-                logger.info(f"Attempting to generate content for Question {mod}")
-                content_selector = f"#main-content-{module}_{submodule}_{mod}"
-                expect(page.locator(content_selector)).not_to_contain_text(
-                    "No content", timeout=GENERATE_WAIT_TIMEOUT * 60 * 1000
-                )
-                expect(page.locator(content_selector)).not_to_be_empty(
-                    timeout=GENERATE_WAIT_TIMEOUT * 60 * 1000
-                )
+        for submod, subsubmods in submodules.items():
+            for subsubmod in subsubmods:
+                try:
+                    logger.info(
+                        f"Attempting to generate content for subsubmod {subsubmod}"
+                    )
+                    content_selector = f"#main-content-{module}_{submod}_{subsubmod}"
+                    expect(page.locator(content_selector)).not_to_contain_text(
+                        "No content", timeout=GENERATE_WAIT_TIMEOUT * 60 * 1000
+                    )
+                    expect(page.locator(content_selector)).not_to_be_empty(
+                        timeout=GENERATE_WAIT_TIMEOUT * 60 * 1000
+                    )
 
-                logger.info(f"✓ Question {mod}: Content generated successfully")
-                page.screenshot(path=f"screenshots/{module}_{submodule}_{mod}_06_question_{mod}_generated.png")
-                successful_questions += 1
+                    logger.info(
+                        f"✓ subsubmod {subsubmod}: Content generated successfully"
+                    )
+                    page.screenshot(
+                        path=f"screenshots/{module}_{submod}_{subsubmod}_06_subsubmod_{subsubmod}_generated.png"
+                    )
+                    successful_subsubmods += 1
 
-            except Exception as q_error:
-                logger.error(f"Question {mod} generation failed: {q_error}")
-                page.screenshot(path=f"screenshots/{module}_{submodule}_{mod}_06_question_{mod}_failed.png")
-                continue
+                except Exception as q_error:
+                    logger.error(f"subsubmod {subsubmod} generation failed: {q_error}")
+                    page.screenshot(
+                        path=f"screenshots/{module}_{submod}_{subsubmod}_06_subsubmod_{subsubmod}_failed.png"
+                    )
+                    continue
 
         logger.info(
-            f"✓ Successfully generated {successful_questions}/{len(subsubmodules)} questions"
+            f"✓ Successfully generated {successful_subsubmods}/{len(subsubmods)} subsubmodules"
         )
 
-    except Exception as questions_error:
-        logger.error(f"Questions generation section failed: {questions_error}")
-        page.screenshot(path=f"screenshots/{module}_{submodule}_06_questions_section_failed.png")
+    except Exception as submodules_error:
+        logger.error(f"Submodules generation section failed: {submodules_error}")
+        page.screenshot(
+            path=f"screenshots/{module}_{submod}_06_submodules_section_failed.png"
+        )
 
     # Step 5: Cleanup (if file_id is available)
     logger.info("Step 5: Attempting cleanup")
@@ -174,13 +185,17 @@ def per_component(
             page.locator(delete_button_selector).click()
             page.wait_for_timeout(2000)
             logger.info("✓ Deleted file successfully")
-            page.screenshot(path=f"screenshots/{module}_{submodule}_07_cleanup_completed.png")
+            page.screenshot(
+                path=f"screenshots/{module}_{submod}_07_cleanup_completed.png"
+            )
         else:
             logger.info("⚠️ Delete button not found - cleanup may not be needed")
-            page.screenshot(path=f"screenshots/{module}_{submodule}_07_cleanup_not_needed.png")
+            page.screenshot(
+                path=f"screenshots/{module}_{submod}_07_cleanup_not_needed.png"
+            )
     except Exception as cleanup_error:
         logger.warning(f"Cleanup failed: {cleanup_error}")
-        page.screenshot(path=f"screenshots/{module}_{submodule}_07_cleanup_failed.png")
+        page.screenshot(path=f"screenshots/{module}_{submod}_07_cleanup_failed.png")
 
     logger.info("🎉 Test execution completed!")
 
@@ -189,71 +204,90 @@ def test_draft(page) -> None:
     per_component(
         page,
         module="draft",
-        submodule="questions",
-        subsubmodules=["q_1", "q_2", "q_3", "q_4", "q_5"],
+        submodules={
+            "questions": ["q_1", "q_2", "q_3", "q_4", "q_5"],
+        },
+    )
+
+def test_defend(page) -> None:
+    defend_submodules = {}
+
+def test_review(page) -> None:
+    module = "review"
+
+    review_submodules = {
+        "overall": ["coherence", "competent_professionals"],
+        "eligibility": [
+            "overall_eligibility",
+            "risk_factors",
+            "baseline_statements",
+            "internet_search",
+            "feedback",
+            "uncertainty_check",
+            "qualifying_activity",
+        ],
+        "baseline": ["comprehensiveness", "focus", "phrasing", "grammar"],
+        "advance": [
+            "comprehensiveness",
+            "focus",
+            "phrasing",
+            "guideline_references",
+            "grammar",
+        ],
+        "uncertainty": [
+            "comprehensiveness",
+            "focus",
+            "phrasing",
+            "guideline_references",
+            "grammar",
+        ],
+        "resolution": [
+            "comprehensiveness",
+            "focus",
+            "phrasing",
+            "guideline_references",
+            "grammar",
+        ],
+    }
+
+    per_component(
+        page,
+        module=module,
+        submodules=review_submodules,
     )
 
 
 def test_qualify(page) -> None:
     module = "qualify"
-    submodule = "overall_assessment"
-    try:
-        per_component(
-            page,
-            module=module,
-            submodule=submodule,
-            subsubmodules=["eligibility"],
-        )
-    except Exception as e:
-        logger.error(f"Overall assessment failed: {e}")
-        page.screenshot(path=f"screenshots/{module}_{submodule}_08_overall_assessment_failed.png")
-    
-    submodule = "baseline_research"
-    try:
-        per_component(
-            page,
-            module=module,
-            submodule=submodule,
-            subsubmodules=["baseline_statements", "internet_search", "feedback"],
-        )
-    except Exception as e:
-        logger.error(f"Baseline research failed: {e}")
-        page.screenshot(path=f"screenshots/{module}_{submodule}_08_baseline_research_failed.png")
+    submodules = {
+        "overall_assessment": ["eligibility"],
+        "baseline_research": ["baseline_statements", "internet_search", "feedback"],
+        "risk_factors": [
+            "risk_factors",
+            "uncertainty_check",
+            "qualifying_activity",
+        ],
+        "narrative_content_coverage": [
+            "baseline",
+            "advance",
+            "uncertainty",
+            "resolution",
+        ],
+    }
 
-    submodule = "risk_factors"
-    try:
-        per_component(
-            page,
-            module=module,
-            submodule=submodule,
-            subsubmodules=[
-                "risk_factors",
-                "uncertainty_check",
-                "qualifying_activity",
-            ],
-        )
-    except Exception as e:
-        logger.error(f"Risk factors failed: {e}")
-        page.screenshot(path=f"screenshots/{module}_{submodule}_08_risk_factors_failed.png")
+    per_component(
+        page,
+        module=module,
+        submodules=submodules,
+    )
 
-    try:
-        submodule = "narrative_content_coverage"
-        per_component(
-            page,
-            module=module,
-            submodule=submodule,
-            subsubmodules=[ "baseline", "advance", "uncertainty", "resolution"],
-        )
-    except Exception as e:
-        logger.error(f"Narrative content coverage failed: {e}")
-        page.screenshot(path=f"screenshots/{module}_{submodule}_08_narrative_content_coverage_failed.png")
 
 if __name__ == "__main__":
     from playwright.sync_api import sync_playwright
 
     with sync_playwright() as p:
         browser = p.chromium.launch(
-            headless=False,
+            headless=True,
             slow_mo=500,
         )
         page = browser.new_page()
@@ -264,6 +298,3 @@ if __name__ == "__main__":
             subsubmodules=["eligibility"],
         )
         browser.close()
-
-
-
