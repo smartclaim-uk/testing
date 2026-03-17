@@ -15,135 +15,44 @@ UPLOAD_WAIT_TIMEOUT = 3  # minutes
 os.makedirs("screenshots", exist_ok=True)
 
 
-def per_component(page, module: str, submodules: dict[str, list[str]]) -> None:
-    logger.info(f"🚀 Starting {module} {submodules} test workflow")
-
-    # Step 1: Login
+def login(page, module: str) -> None:
+    """Login and navigate to the given module page."""
     logger.info("Step 1: Performing login")
-    page.goto(url=BASE_URL)
-    page.screenshot(path="screenshots/01_homepage.png")
-    logger.info("✓ Navigated to homepage")
+    page.goto(url=f"{BASE_URL}/login")
+    page.screenshot(path="screenshots/01_login_page.png")
+    logger.info("✓ Navigated to login page")
 
-    page.get_by_role("button", name="arrow left to bracket outline").click()
-    logger.info("✓ Clicked login button")
-
-    page.get_by_placeholder("Enter your email").click()
-    page.get_by_placeholder("Enter your email").fill(os.getenv("USER_NAME"))
-    page.get_by_placeholder("Enter your email").press("Tab")
-    page.get_by_placeholder("Enter your password").fill(os.getenv("PASSWORD"))
-    page.get_by_placeholder("Enter your password").press("Enter")
+    page.locator("#username").fill(os.getenv("USER_NAME"))
+    page.locator("#password").fill(os.getenv("PASSWORD"))
+    page.locator("form").get_by_role("button", name="Log in").click()
     page.screenshot(path=f"screenshots/{module}_02_login_completed.png")
     logger.info("✓ Login completed successfully")
 
     page.get_by_role("link", name=module.capitalize()).click()
 
-    # Step 2: File Upload
-    logger.info("Step 2: Uploading file")
-    page.get_by_role("button", name="Select Files").set_input_files("output.pdf")
-    page.screenshot(path="screenshots/03_file_uploaded.png")
-    logger.info("✓ File uploaded successfully")
 
-    page.get_by_role("button", name="Select Files").press("ControlOrMeta+-")
-    page.locator("div").filter(has_text="We are using cookies to").nth(3).click()
-    if module == "draft":
-        page.get_by_role("combobox").select_option("gpt-5-chat")
-        logger.info("✓ Selected GPT-5 chat model")
-    else:
-        logger.info("using default gpt-4o model")
-    # Step 3: File Processing
-    logger.info("Step 3: Waiting for file processing")
-    global_state = json.loads(
-        page.evaluate("window.localStorage.getItem('global_state')")
-    )
-    file_id = next((f for f in global_state[module]["files"] if f != "data"), None)
-    logger.info(f"File ID: {file_id}")
-
-    # Wait for file processing with progressive timeout and better logging
-    def wait_for_file_upload(max_wait_minutes=UPLOAD_WAIT_TIMEOUT):
-        """Wait for file processing with progressive checks"""
-        import time
-
-        start_time = time.time()
-        max_wait_seconds = max_wait_minutes * 60
-        check_interval = 10  # Check every 10 seconds
-
-        while (time.time() - start_time) < max_wait_seconds:
-            try:
-                current_status = page.locator(f"#status-text-{file_id}").text_content()
-                logger.info(f"Current processing status: {current_status}")
-
-                if "Ready" in current_status:
-                    logger.info("✓ File processing completed - Status: Ready")
-                    return True
-                elif "Error" in current_status or "Failed" in current_status:
-                    logger.error(
-                        f"File processing failed with status: {current_status}"
-                    )
-                    return False
-
-                # Wait before next check
-                time.sleep(check_interval)
-
-            except Exception as check_error:
-                logger.warning(f"Error checking status: {check_error}")
-                time.sleep(check_interval)
-
-        return False  # Timeout reached
+def submit_and_verify(page, module: str, submodules: dict[str, list[str]]) -> None:
+    """Click Submit and verify all submodule content is generated."""
+    logger.info("Clicking Submit and verifying content generation")
+    total = sum(len(v) for v in submodules.values())
+    successful = 0
 
     try:
-        if wait_for_file_upload(3):  # 3 minutes max
-            page.screenshot(path="screenshots/04_processing_completed.png")
-            logger.info("✓ File processing completed successfully")
-        else:
-            current_status = page.locator(f"#status-text-{file_id}").text_content()
-            logger.error(f"File processing timed out. Final status: {current_status}")
-            page.screenshot(path="screenshots/04_processing_timeout.png")
-
-            # Continue with the test anyway to generate report
-            logger.info(
-                "⚠️ Continuing test despite processing timeout for report generation"
-            )
-    except Exception as e:
-        current_status = page.locator(f"#status-text-{file_id}").text_content()
-        logger.error(f"File processing error: {e}. Current status: {current_status}")
-        page.screenshot(path="screenshots/04_processing_failed.png")
-        # Continue with the test to generate useful report
-        logger.info("⚠️ Continuing test despite processing error for report generation")
-
-    # Try to accept results if Accept button is available
-    try:
-        accept_button = page.get_by_role("button", name="Accept")
-        if accept_button.is_visible():
-            accept_button.click()
-            page.screenshot(path="screenshots/05_results_accepted.png")
-            logger.info("✓ Accepted file processing results")
-        else:
-            logger.info("⚠️ Accept button not visible - may not be needed")
-    except Exception as e:
-        logger.warning(f"Could not click Accept button: {e}")
-        page.screenshot(path="screenshots/05_accept_failed.png")
-
-    # Step 4: Test Submodules Generation (if available)
-    logger.info("Step 4: Testing submodules generation")
-    try:
-        successful_subsubmods = 0
         submit_button = page.get_by_role("button", name="Submit")
         if submit_button.is_visible():
             submit_button.click()
-            logger.info("✓ Submitted submodules successfully")
+            logger.info("✓ Submitted successfully")
         else:
-            logger.error("⚠️ Submit button not visible - may not be needed")
+            logger.error("⚠️ Submit button not visible")
             page.screenshot(
-                path=f"screenshots/{module}_06_submit_button_not_visible.png"
+                path=f"screenshots/{module}_submit_not_visible.png"
             )
             raise Exception("Submit button not visible")
 
         for submod, subsubmods in submodules.items():
             for subsubmod in subsubmods:
                 try:
-                    logger.info(
-                        f"Attempting to generate content for subsubmod {subsubmod}"
-                    )
+                    logger.info(f"Waiting for content: {module}_{submod}_{subsubmod}")
                     content_selector = f"#main-content-{module}_{submod}_{subsubmod}"
                     expect(page.locator(content_selector)).not_to_contain_text(
                         "No content", timeout=GENERATE_WAIT_TIMEOUT * 60 * 1000
@@ -151,51 +60,128 @@ def per_component(page, module: str, submodules: dict[str, list[str]]) -> None:
                     expect(page.locator(content_selector)).not_to_be_empty(
                         timeout=GENERATE_WAIT_TIMEOUT * 60 * 1000
                     )
-
-                    logger.info(
-                        f"✓ subsubmod {subsubmod}: Content generated successfully"
-                    )
+                    logger.info(f"✓ {submod}/{subsubmod}: Content generated")
                     page.screenshot(
-                        path=f"screenshots/{module}_{submod}_{subsubmod}_06_subsubmod_{subsubmod}_generated.png"
+                        path=f"screenshots/{module}_{submod}_{subsubmod}_generated.png"
                     )
-                    successful_subsubmods += 1
-
-                except Exception as q_error:
-                    logger.error(f"subsubmod {subsubmod} generation failed: {q_error}")
+                    successful += 1
+                except Exception as e:
+                    logger.error(f"{submod}/{subsubmod} failed: {e}")
                     page.screenshot(
-                        path=f"screenshots/{module}_{submod}_{subsubmod}_06_subsubmod_{subsubmod}_failed.png"
+                        path=f"screenshots/{module}_{submod}_{subsubmod}_failed.png"
                     )
                     continue
 
-        logger.info(
-            f"✓ Successfully generated {successful_subsubmods}/{len(subsubmods)} subsubmodules"
-        )
+        logger.info(f"✓ Generated {successful}/{total} submodules")
 
-    except Exception as submodules_error:
-        logger.error(f"Submodules generation section failed: {submodules_error}")
-        page.screenshot(
-            path=f"screenshots/{module}_{submod}_06_submodules_section_failed.png"
-        )
+    except Exception as e:
+        logger.error(f"Submodules generation failed: {e}")
+        page.screenshot(path=f"screenshots/{module}_generation_failed.png")
 
-    # Step 5: Cleanup (if file_id is available)
-    logger.info("Step 5: Attempting cleanup")
+
+def upload_and_process(page, module: str) -> str | None:
+    """Upload file, wait for processing, accept results. Returns file_id."""
+    import time
+
+    logger.info("Step 2: Uploading file")
+    page.locator("#file-upload").set_input_files("output.pdf")
+    page.screenshot(path="screenshots/03_file_uploaded.png")
+    logger.info("✓ File uploaded successfully")
+
+    logger.info("Step 3: Waiting for file processing")
+    global_state = json.loads(
+        page.evaluate("window.localStorage.getItem('global_state')")
+    )
+    file_id = next((f for f in global_state[module]["files"] if f != "data"), None)
+    logger.info(f"File ID: {file_id}")
+
+    start_time = time.time()
+    max_wait_seconds = UPLOAD_WAIT_TIMEOUT * 60
+
+    while (time.time() - start_time) < max_wait_seconds:
+        try:
+            current_status = page.locator(f"#status-text-{file_id}").text_content()
+            logger.info(f"Processing status: {current_status}")
+            if "Ready" in current_status:
+                logger.info("✓ File processing completed")
+                page.screenshot(path="screenshots/04_processing_completed.png")
+                break
+            elif "Error" in current_status or "Failed" in current_status:
+                logger.error(f"Processing failed: {current_status}")
+                page.screenshot(path="screenshots/04_processing_failed.png")
+                break
+            time.sleep(10)
+        except Exception as e:
+            logger.warning(f"Error checking status: {e}")
+            time.sleep(10)
+    else:
+        logger.error("File processing timed out")
+        page.screenshot(path="screenshots/04_processing_timeout.png")
+
+    # Try to accept results if available
     try:
-        delete_button_selector = f"#delete-button-{file_id}"
-        if page.locator(delete_button_selector).is_visible():
-            page.locator(delete_button_selector).click()
+        accept_button = page.get_by_role("button", name="Accept")
+        if accept_button.is_visible():
+            accept_button.click()
+            logger.info("✓ Accepted results")
+    except Exception:
+        pass
+
+    return file_id
+
+
+def cleanup_file(page, module: str, file_id: str | None) -> None:
+    """Delete uploaded file if possible."""
+    if not file_id:
+        return
+    logger.info("Attempting cleanup")
+    try:
+        delete_button = page.locator(f"#delete-button-{file_id}")
+        if delete_button.is_visible():
+            delete_button.click()
             page.wait_for_timeout(2000)
             logger.info("✓ Deleted file successfully")
-            page.screenshot(
-                path=f"screenshots/{module}_{submod}_07_cleanup_completed.png"
-            )
+            page.screenshot(path=f"screenshots/{module}_cleanup_completed.png")
         else:
-            logger.info("⚠️ Delete button not found - cleanup may not be needed")
-            page.screenshot(
-                path=f"screenshots/{module}_{submod}_07_cleanup_not_needed.png"
-            )
-    except Exception as cleanup_error:
-        logger.warning(f"Cleanup failed: {cleanup_error}")
-        page.screenshot(path=f"screenshots/{module}_{submod}_07_cleanup_failed.png")
+            logger.info("⚠️ Delete button not found")
+    except Exception as e:
+        logger.warning(f"Cleanup failed: {e}")
+
+
+def per_component(page, module: str, submodules: dict[str, list[str]]) -> None:
+    """Test flow for file-upload modules (draft, qualify, etc.)."""
+    logger.info(f"🚀 Starting {module} test workflow")
+
+    login(page, module)
+    file_id = upload_and_process(page, module)
+    submit_and_verify(page, module, submodules)
+    cleanup_file(page, module, file_id)
+
+    logger.info("🎉 Test execution completed!")
+
+
+def per_component_textarea(
+    page, module: str, submodules: dict[str, list[str]], sample_text: str = "Sample text for testing."
+) -> None:
+    """Test flow for textarea-input modules (review)."""
+    logger.info(f"🚀 Starting {module} test workflow (textarea mode)")
+
+    login(page, module)
+
+    # Fill textareas with sample text
+    logger.info("Step 2: Filling textareas with sample text")
+    textareas = page.locator("textarea")
+    count = textareas.count()
+    logger.info(f"Found {count} textareas")
+    for i in range(count):
+        textareas.nth(i).click()
+        textareas.nth(i).fill(sample_text)
+        textareas.nth(i).dispatch_event("input")
+        textareas.nth(i).dispatch_event("change")
+    page.screenshot(path=f"screenshots/{module}_03_textareas_filled.png")
+    logger.info("✓ Textareas filled")
+
+    submit_and_verify(page, module, submodules)
 
     logger.info("🎉 Test execution completed!")
 
@@ -205,26 +191,20 @@ def test_draft(page) -> None:
         page,
         module="draft",
         submodules={
-            "questions": ["q_1", "q_2", "q_3", "q_4", "q_5"],
+            "questions": ["q_1", "q_2", "q_3", "q_4", "q_5", "q_6"],
         },
     )
 
-def test_defend(page) -> None:
-    defend_submodules = {}
-
 def test_review(page) -> None:
-    module = "review"
-
     review_submodules = {
-        "overall": ["coherence", "competent_professionals"],
         "eligibility": [
             "overall_eligibility",
-            "risk_factors",
             "baseline_statements",
             "internet_search",
             "feedback",
             "uncertainty_check",
             "qualifying_activity",
+            "risk_factors",
         ],
         "baseline": ["comprehensiveness", "focus", "phrasing", "grammar"],
         "advance": [
@@ -248,24 +228,31 @@ def test_review(page) -> None:
             "guideline_references",
             "grammar",
         ],
+        "overall": ["coherence", "competent_professionals"],
+        "questions_for_client": [
+            "research",
+            "risk_factors",
+            "narrative_content_coverage",
+        ],
     }
 
-    per_component(
+    per_component_textarea(
         page,
-        module=module,
+        module="review",
         submodules=review_submodules,
     )
 
 
 def test_qualify(page) -> None:
-    module = "qualify"
     submodules = {
-        "overall_assessment": ["eligibility"],
-        "baseline_research": ["baseline_statements", "internet_search", "feedback"],
-        "risk_factors": [
-            "risk_factors",
+        "eligibility": [
+            "summary",
+            "baseline_statements",
+            "internet_search",
+            "feedback",
             "uncertainty_check",
             "qualifying_activity",
+            "risk_factors",
         ],
         "narrative_content_coverage": [
             "baseline",
@@ -273,11 +260,16 @@ def test_qualify(page) -> None:
             "uncertainty",
             "resolution",
         ],
+        "questions_for_client": [
+            "research",
+            "risk_factors",
+            "narrative_content_coverage",
+        ],
     }
 
     per_component(
         page,
-        module=module,
+        module="qualify",
         submodules=submodules,
     )
 

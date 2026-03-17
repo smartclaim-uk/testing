@@ -4,84 +4,70 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Playwright testing project for the SmartClaim application. The repository contains automated web tests that interact with the SmartClaim platform at various environments (staging/dev). Tests are written in Python using the Playwright framework.
+Playwright testing project for the SmartClaim application. Tests are written in Python using pytest + Playwright, targeting staging/dev environments. Tests perform login, file upload, content generation, and cleanup flows.
 
 ## Development Setup
 
-The project uses:
-- **uv** for Python dependency management 
-- **direnv** for environment management (`.envrc` automatically syncs dependencies and activates virtual environment)
-- **Task** for running common commands (defined in `Taskfile.yml`)
-- **Docker** for containerized testing
-- **Playwright** for browser automation
+- **uv** for dependency management
+- **direnv** for environment (`.envrc` runs `uv sync` and activates `.venv`)
+- **Task** (go-task) for common commands
+- Run `direnv allow` after cloning
 
-### Environment Management
-- Run `direnv allow` to enable automatic environment setup
-- The `.envrc` file automatically runs `uv sync --no-install-project` and activates the virtual environment
-- Environment variables are configured in `.env` (BASE_URL, USER_NAME)
+### Environment Variables (`.env`)
+- `BASE_URL` - Target environment URL
+- `USER_NAME` - Test user email
+- `PASSWORD` - Test user password
 
-## Common Commands
+## Commands
 
-### Running Tests
-- `task test` - Run tests with browser visible (headed mode)
-- `task test:headless` - Run tests in background (headless mode)
-- `task test:ci` - Run tests for CI environment (headless with screenshots)
-- `uv run python -m pytest tests/run.py -v -s --headed --browser=chromium` - Direct pytest command
+### Tests
+- `task test` - Run tests headed (browser visible)
+- `task test:headless` - Run tests headless
+- `task test:ci` - Run tests for CI (headless + screenshots)
+- Single test: `uv run python -m pytest tests/run.py::test_draft -v -s --headed --browser=chromium`
 
-### Playwright Setup
-- `uv run playwright install --with-deps` - Install Playwright browsers and dependencies
-- Tests run with `headless=False` by default for development
+### Formatting
+- `uv run black .` - Format code
+- `uv run isort .` - Sort imports
+- `uv run autoflake --remove-all-unused-imports -r .` - Remove unused imports
 
-### Docker Commands
-- `task docker:build` - Build Docker image
-- `task docker:run` - Run application in Docker container  
-- `task docker:down` - Stop Docker containers
-- Direct: `docker-compose up/down/build`
+### Docker
+- `task docker:build` / `task docker:run` / `task docker:down`
 
-### Dependencies
-- `uv sync` - Sync dependencies from pyproject.toml
-- `uv add <package>` - Add new dependency
+### Playwright
+- `uv run playwright install --with-deps` - Install browsers
 
 ## Architecture
 
-### Test Structure
-- `/tests/run.py` - Main test file containing Playwright automation
-- Test performs login flow, file upload, and status verification on SmartClaim platform
-- Uses explicit waits and expects for reliable test execution
+### Test Flow (`tests/run.py`)
+All tests use `per_component(page, module, submodules)` which executes:
+1. **Login** - Navigate to BASE_URL, authenticate with credentials
+2. **Upload** - Upload `output.pdf` to the selected module
+3. **Wait for processing** - Poll `#status-text-{file_id}` until "Ready" (3 min timeout)
+4. **Accept & Submit** - Click Accept/Submit buttons
+5. **Verify submodules** - Assert each submodule's `#main-content-{module}_{submod}_{subsubmod}` has content (5 min timeout per submodule)
+6. **Cleanup** - Delete uploaded file via `#delete-button-{file_id}`
 
-### Configuration
-- `playwright.config.py` - Playwright configuration with HTML reporter
-- `pyproject.toml` - Python project configuration and dependencies
-- `.env` - Environment-specific configuration (BASE_URL, credentials)
-- `Taskfile.yml` - Task runner configuration for common commands
+File ID is extracted from `window.localStorage.getItem('global_state')`.
 
-### Docker Setup
-- Multi-stage build using Python 3.13-slim base image
-- Includes system dependencies for Playwright browsers
-- Installs uv for dependency management
-- Default command runs pytest test suite
+### Test Functions
+- `test_draft` - Tests draft module with 5 questions
+- `test_review` - Tests review module (overall, eligibility, baseline, advance, uncertainty, resolution)
+- `test_qualify` - Tests qualify module (overall_assessment, baseline_research, risk_factors, narrative_content_coverage)
+- `test_defend` - Stub (empty)
 
-## Test Data
-- Test files are expected in repository root (e.g., "Martian Transcript copy.docx")
-- Tests interact with staging environment by default (stg2.smartclaim.uk)
+### Fixtures (`conftest.py`)
+- `browser` (session-scoped) - Launches Chromium headless
+- `page` (function-scoped) - Creates context with video recording (1280x720), yields page, closes context
 
-## GitHub Actions CI/CD
+### Default pytest options (`pytest.ini`)
+`--html=report.html --self-contained-html --screenshot=on --video=on --tracing=on -s --log-level=INFO --output=test-results`
 
-### Workflow Features
-- **Automated Testing**: Runs on push/PR to main branch
-- **HTML Report Generation**: Creates detailed test reports with screenshots
-- **GitHub Pages Deployment**: Automatically serves test reports at GitHub Pages URL
-- **Cross-platform**: Runs on Ubuntu with Chromium browser
+## CI/CD
+
+GitHub Actions workflow runs on push/PR to main and daily at midnight UTC. Deploys HTML test reports to GitHub Pages.
 
 ### Required Secrets
-Set these in GitHub repository settings → Secrets and variables → Actions:
-- `BASE_URL`: Target environment URL (optional, defaults to dev2.smartclaim.uk)  
-- `USER_NAME`: Test user email
-- `PASSWORD`: Test user password
-
-### Accessing Reports
-After workflow runs, test reports are available at:
-`https://[username].github.io/[repository-name]/`
-
-### Manual Workflow Trigger
-Workflow can be triggered manually via GitHub Actions tab → "Run Playwright Tests and Deploy Report" → "Run workflow"
+- `USER_NAME`, `PASSWORD` - Test credentials
+- `BASE_URL` - Target URL (optional, defaults to dev2.smartclaim.uk)
+- `TELEGRAM_TOKEN`, `TELEGRAM_CHAT_ID` - Optional notification on success

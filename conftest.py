@@ -2,11 +2,12 @@ import pytest
 from playwright.sync_api import sync_playwright
 
 @pytest.fixture(scope="session")
-def browser():
+def browser(request):
     """Browser fixture with video recording enabled"""
+    headed = request.config.getoption("--headed", default=False)
     with sync_playwright() as p:
         browser = p.chromium.launch(
-            headless=True,  # CI runs headless
+            headless=not headed,
         )
         yield browser
         browser.close()

@@ -29,7 +29,7 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -53,24 +53,20 @@ jobs:
 
     - name: Add test files
       run: |
-        # Create a proper test document that should process faster
         cat > test-document.txt << 'EOF'
         Test Document for SmartClaim Processing
-        
+
         This is a simple test document containing minimal text content that should process quickly in the SmartClaim system.
-        
+
         Key Information:
         - Document Type: Test Document
         - Content: Minimal text for fast processing
         - Purpose: Automated testing
-        
+
         This document contains enough text to trigger processing but is small enough to process quickly.
         EOF
-        
-        # Convert to PDF using available tools or use as text file
+
         cp test-document.txt output.pdf
-        
-        # Also create the original test file as backup
         echo "SmartClaim Test Document - Simple content for automated testing." > Martian\ Transcript\ copy.docx
 
     - name: Run Playwright tests
@@ -80,13 +76,13 @@ jobs:
         USER_NAME: ${{ secrets.USER_NAME }}
         PASSWORD: ${{ secrets.PASSWORD }}
       run: |
-        if uv run python -m pytest tests/run.py -v -s --browser=chromium --screenshot=on --html=report.html --self-contained-html --video=on; then
+        if uv run python -m pytest tests/run.py -v -s --browser=chromium --screenshot=on --html=report.html --self-contained-html --video=on --junitxml=junit-results.xml; then
           echo "test_status=success" >> $GITHUB_OUTPUT
         else
           echo "test_status=failure" >> $GITHUB_OUTPUT
         fi
-      continue-on-error: true  # Continue even if tests fail to deploy the report
-    
+      continue-on-error: true
+
     - name: Send Telegram notification on success
       if: steps.test_run.outputs.test_status == 'success'
       env:
@@ -94,11 +90,10 @@ jobs:
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       run: |
         if [ -n "$TELEGRAM_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
-          # Extract owner and repo name for Pages URL
           REPO_OWNER="${{ github.repository_owner }}"
           REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
           PAGES_URL="https://${REPO_OWNER}.github.io/${REPO_NAME}/"
-          
+
           MESSAGE="✅ SmartClaim tests passed successfully!%0A%0A"
           MESSAGE="${MESSAGE}📋 Repository: ${{ github.repository }}%0A"
           MESSAGE="${MESSAGE}🔀 Branch: ${{ github.ref_name }}%0A"
@@ -106,7 +101,7 @@ jobs:
           MESSAGE="${MESSAGE}📝 Commit: ${{ github.sha }}%0A"
           MESSAGE="${MESSAGE}📊 Report: ${PAGES_URL}%0A"
           MESSAGE="${MESSAGE}🔗 Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          
+
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
             -d "chat_id=${TELEGRAM_CHAT_ID}" \
             -d "text=${MESSAGE}" \
@@ -130,54 +125,59 @@ jobs:
         path: existing-site/
       continue-on-error: true
 
-    - name: Extract existing history
+    - name: Extract existing history and archived runs
       run: |
-        mkdir -p _site
-        # Try to extract history from existing deployment
-        if [ -d "existing-site" ]; then
+        mkdir -p _site/runs
+        if [ -d "existing-site" ] && [ -f "existing-site/artifact.tar" ]; then
           cd existing-site
-          if [ -f "artifact.tar" ]; then
-            tar -tf artifact.tar | head -10
-            tar -xf artifact.tar report-history.json 2>/dev/null || echo "No history found"
-            if [ -f "report-history.json" ]; then
-              cp report-history.json ../_site/report-history.json
-              echo "Existing report history found and restored"
-            fi
+          tar -xf artifact.tar 2>/dev/null || true
+          if [ -f "report-history.json" ]; then
+            cp report-history.json ../_site/report-history.json
+            echo "Restored report history"
+          fi
+          if [ -d "runs" ]; then
+            cp -r runs/* ../_site/runs/ 2>/dev/null || true
+            echo "Restored $(ls ../_site/runs/ | wc -l) archived runs"
           fi
           cd ..
         fi
 
     - name: Create Pages structure
+      env:
+        GITHUB_RUN_ID_VAL: ${{ github.run_id }}
+        GITHUB_SHA: ${{ github.sha }}
+        GITHUB_REF_NAME: ${{ github.ref_name }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_SERVER_URL: ${{ github.server_url }}
+        GITHUB_ACTOR: ${{ github.actor }}
+        TEST_STATUS: ${{ steps.test_run.outputs.test_status }}
       run: |
-        # Copy test report as the main report
-        cp report.html _site/report.html 2>/dev/null || echo "No report.html found"
-        
-        # Copy artifacts with better error handling
+        RUN_ID="${GITHUB_RUN_ID_VAL:-$(date +%s)}"
+        RUN_DIR="_site/runs/${RUN_ID}"
+        mkdir -p "${RUN_DIR}/screenshots" "${RUN_DIR}/videos"
+
+        # Copy report
+        cp report.html "${RUN_DIR}/report.html" 2>/dev/null || true
+
+        # Copy screenshots
         if [ -d "screenshots" ]; then
-          cp -r screenshots _site/screenshots
-          echo "Screenshots copied successfully"
-          ls -la _site/screenshots/
-        else
-          mkdir -p _site/screenshots
-          echo "No screenshots directory found, created empty one"
+          cp screenshots/*.png "${RUN_DIR}/screenshots/" 2>/dev/null || true
+          echo "Copied $(ls ${RUN_DIR}/screenshots/ 2>/dev/null | wc -l) screenshots"
         fi
-        
+
+        # Copy videos
         if [ -d "test-results" ]; then
-          cp -r test-results _site/test-results
-          echo "Test results copied successfully"
-          find _site/test-results -name "*.webm" -exec ls -la {} \;
-        else
-          echo "No test-results directory found"
+          find test-results -name "*.webm" -exec cp {} "${RUN_DIR}/videos/" \;
+          echo "Copied $(ls ${RUN_DIR}/videos/ 2>/dev/null | wc -l) videos"
         fi
-        
-        if [ -d "playwright-report" ]; then
-          cp -r playwright-report _site/playwright-report
-          echo "Playwright report copied successfully"
-        else
-          echo "No playwright-report directory found"
-        fi
-        
-        # Create index page with history
+
+        # Copy junit results for parsing
+        cp junit-results.xml "${RUN_DIR}/" 2>/dev/null || true
+
+        # Also keep latest report at root for backward compat
+        cp report.html _site/report.html 2>/dev/null || true
+
+        # Generate the dashboard
         python .github/workflows/create-index.py
 
     - name: Upload artifact
