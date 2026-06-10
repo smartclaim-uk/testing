@@ -198,6 +198,9 @@ jobs:
         git push --force "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" test-history
 
   deploy:
+    # PR runs only validate tests; the github-pages environment only allows
+    # deployments from main, and PRs shouldn't overwrite the published site
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
