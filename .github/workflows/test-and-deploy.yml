@@ -17,7 +17,7 @@ on:
   workflow_dispatch:  # Allow manual triggering
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -118,28 +118,22 @@ jobs:
     - name: Setup Pages
       uses: actions/configure-pages@v6
 
-    - name: Download existing Pages artifact (for history)
-      uses: actions/download-artifact@v8
-      with:
-        name: github-pages
-        path: existing-site/
-      continue-on-error: true
-
-    - name: Extract existing history and archived runs
+    - name: Restore history from test-history branch
       run: |
         mkdir -p _site/runs
-        if [ -d "existing-site" ] && [ -f "existing-site/artifact.tar" ]; then
-          cd existing-site
-          tar -xf artifact.tar 2>/dev/null || true
-          if [ -f "report-history.json" ]; then
-            cp report-history.json ../_site/report-history.json
+        if git fetch --depth=1 origin test-history; then
+          mkdir -p existing-site
+          git archive FETCH_HEAD | tar -x -C existing-site
+          if [ -f "existing-site/report-history.json" ]; then
+            cp existing-site/report-history.json _site/report-history.json
             echo "Restored report history"
           fi
-          if [ -d "runs" ]; then
-            cp -r runs/* ../_site/runs/ 2>/dev/null || true
-            echo "Restored $(ls ../_site/runs/ | wc -l) archived runs"
+          if [ -d "existing-site/runs" ]; then
+            cp -r existing-site/runs/. _site/runs/
+            echo "Restored $(ls _site/runs/ | wc -l) archived runs"
           fi
-          cd ..
+        else
+          echo "No test-history branch yet, starting fresh"
         fi
 
     - name: Create Pages structure
@@ -185,7 +179,28 @@ jobs:
       with:
         path: '_site'
 
+    - name: Save history to test-history branch
+      if: github.event_name != 'pull_request'
+      run: |
+        mkdir -p history-out
+        cp _site/report-history.json history-out/ 2>/dev/null || true
+        if [ -d "_site/runs" ]; then
+          cp -r _site/runs history-out/runs
+        fi
+        cd history-out
+        git init -b test-history
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add -A
+        git commit -m "Test history from run ${{ github.run_id }}"
+        # single orphan commit, force-pushed: the branch holds only the current
+        # tree, so repo size stays bounded by create-index.py's pruning
+        git push --force "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" test-history
+
   deploy:
+    # PR runs only validate tests; the github-pages environment only allows
+    # deployments from main, and PRs shouldn't overwrite the published site
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -194,4 +209,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
