@@ -32,15 +32,15 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Setup Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
         python-version: '3.13'
 
     - name: Install uv
-      uses: astral-sh/setup-uv@v3
+      uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
 
     - name: Install dependencies
       run: uv sync
@@ -116,10 +116,10 @@ jobs:
       continue-on-error: true
 
     - name: Setup Pages
-      uses: actions/configure-pages@v4
+      uses: actions/configure-pages@v6
 
     - name: Download existing Pages artifact (for history)
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: github-pages
         path: existing-site/
@@ -181,7 +181,7 @@ jobs:
         python .github/workflows/create-index.py
 
     - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v5
       with:
         path: '_site'
 
