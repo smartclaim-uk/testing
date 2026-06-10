@@ -1,7 +1,7 @@
 [project]
-name = "testing"
+name = "smartclaim-testing"
 version = "0.1.0"
-description = "Add your description here"
+description = "Playwright end-to-end tests for the SmartClaim application"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
