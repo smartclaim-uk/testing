@@ -25,10 +25,18 @@ def login(page, module: str) -> None:
     page.locator("#username").fill(os.getenv("USER_NAME"))
     page.locator("#password").fill(os.getenv("PASSWORD"))
     page.locator("form").get_by_role("button", name="Log in").click()
+
+    # Wait for the post-login redirect to settle before touching the nav. The
+    # app prerenders the login form (instant paint) and then redirects to
+    # /draft once auth resolves; clicking a module link before that lands races
+    # the redirect and leaves us on /draft (see global_state KeyError below).
+    page.wait_for_url("**/draft")
     page.screenshot(path=f"screenshots/{module}_02_login_completed.png")
     logger.info("✓ Login completed successfully")
 
     page.get_by_role("link", name=module.capitalize()).click()
+    # Confirm the module page is actually loaded before reading its state.
+    page.wait_for_url(f"**/{module}")
 
 
 def submit_and_verify(page, module: str, submodules: dict[str, list[str]]) -> None:
