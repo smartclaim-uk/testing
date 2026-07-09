@@ -44,63 +44,117 @@ def submit_and_verify(page, module: str, submodules: dict[str, list[str]]) -> No
     logger.info("Clicking Submit and verifying content generation")
     total = sum(len(v) for v in submodules.values())
     successful = 0
+    failed: list[str] = []
 
     try:
+        # Submit is rendered but disabled until the module is ready (e.g. all
+        # files Ready), so wait for enabled rather than visible.
         submit_button = page.get_by_role("button", name="Submit")
-        if submit_button.is_visible():
-            submit_button.click()
-            logger.info("✓ Submitted successfully")
-        else:
-            logger.error("⚠️ Submit button not visible")
-            page.screenshot(
-                path=f"screenshots/{module}_submit_not_visible.png"
-            )
-            raise Exception("Submit button not visible")
-
-        for submod, subsubmods in submodules.items():
-            for subsubmod in subsubmods:
-                try:
-                    logger.info(f"Waiting for content: {module}_{submod}_{subsubmod}")
-                    content_selector = f"#main-content-{module}_{submod}_{subsubmod}"
-                    expect(page.locator(content_selector)).not_to_contain_text(
-                        "No content", timeout=GENERATE_WAIT_TIMEOUT * 60 * 1000
-                    )
-                    expect(page.locator(content_selector)).not_to_be_empty(
-                        timeout=GENERATE_WAIT_TIMEOUT * 60 * 1000
-                    )
-                    logger.info(f"✓ {submod}/{subsubmod}: Content generated")
-                    page.screenshot(
-                        path=f"screenshots/{module}_{submod}_{subsubmod}_generated.png"
-                    )
-                    successful += 1
-                except Exception as e:
-                    logger.error(f"{submod}/{subsubmod} failed: {e}")
-                    page.screenshot(
-                        path=f"screenshots/{module}_{submod}_{subsubmod}_failed.png"
-                    )
-                    continue
-
-        logger.info(f"✓ Generated {successful}/{total} submodules")
-
+        expect(submit_button).to_be_enabled(timeout=60 * 1000)
+        submit_button.click()
+        logger.info("✓ Submitted successfully")
     except Exception as e:
-        logger.error(f"Submodules generation failed: {e}")
-        page.screenshot(path=f"screenshots/{module}_generation_failed.png")
+        logger.error(f"Submit failed: {e}")
+        page.screenshot(path=f"screenshots/{module}_submit_failed.png")
+        raise
+
+    for submod, subsubmods in submodules.items():
+        for subsubmod in subsubmods:
+            try:
+                logger.info(f"Waiting for content: {module}_{submod}_{subsubmod}")
+                content_selector = f"#main-content-{module}_{submod}_{subsubmod}"
+                expect(page.locator(content_selector)).not_to_contain_text(
+                    "No content", timeout=GENERATE_WAIT_TIMEOUT * 60 * 1000
+                )
+                expect(page.locator(content_selector)).not_to_be_empty(
+                    timeout=GENERATE_WAIT_TIMEOUT * 60 * 1000
+                )
+                logger.info(f"✓ {submod}/{subsubmod}: Content generated")
+                page.screenshot(
+                    path=f"screenshots/{module}_{submod}_{subsubmod}_generated.png"
+                )
+                successful += 1
+            except Exception as e:
+                logger.error(f"{submod}/{subsubmod} failed: {e}")
+                page.screenshot(
+                    path=f"screenshots/{module}_{submod}_{subsubmod}_failed.png"
+                )
+                failed.append(f"{submod}/{subsubmod}")
+                continue
+
+    logger.info(f"✓ Generated {successful}/{total} submodules")
+    assert not failed, (
+        f"{module}: {len(failed)}/{total} submodules did not generate content: "
+        f"{', '.join(failed)}"
+    )
 
 
-def upload_and_process(page, module: str) -> str | None:
+def get_module_files(page, module: str) -> dict:
+    """Read the module's files dict from the app's localStorage state."""
+    global_state = json.loads(
+        page.evaluate("window.localStorage.getItem('global_state')") or "{}"
+    )
+    files = global_state.get(module, {}).get("files", {})
+    return {k: v for k, v in files.items() if k != "data"}
+
+
+def wait_for_files_list(page) -> None:
+    """Wait for the files table to finish its initial server load.
+
+    Uploading while the list is still loading races the app's post-load
+    cleanup sweep, which can drop the in-flight upload from its state.
+    """
+    page.wait_for_selector("#files-table-container", timeout=30 * 1000)
+    page.wait_for_selector(
+        "#files-loading-container", state="detached", timeout=60 * 1000
+    )
+
+
+def delete_leftover_uploads(page, module: str, file_name: str) -> None:
+    """Delete leftovers of our test file from previous failed runs.
+
+    The app silently drops uploads whose filename already exists in the
+    module, so a leftover output.pdf makes every later run fail.
+    """
+    for file_id, entry in get_module_files(page, module).items():
+        name = (entry.get("data") or {}).get("original_file_name") or ""
+        if name.lower() != file_name.lower():
+            continue
+        logger.info(f"Deleting leftover file from previous run: {file_id}")
+        page.locator(f"#delete-button-{file_id}").click()
+        page.wait_for_selector(
+            f"#file-row-{file_id}", state="detached", timeout=30 * 1000
+        )
+        logger.info(f"✓ Deleted leftover file {file_id}")
+
+
+def upload_and_process(page, module: str) -> str:
     """Upload file, wait for processing, accept results. Returns file_id."""
     import time
 
     logger.info("Step 2: Uploading file")
+    wait_for_files_list(page)
+    delete_leftover_uploads(page, module, "output.pdf")
+    files_before = set(get_module_files(page, module))
+
     page.locator("#file-upload").set_input_files("output.pdf")
-    page.screenshot(path="screenshots/03_file_uploaded.png")
+    page.screenshot(path=f"screenshots/{module}_03_file_uploaded.png")
     logger.info("✓ File uploaded successfully")
 
     logger.info("Step 3: Waiting for file processing")
-    global_state = json.loads(
-        page.evaluate("window.localStorage.getItem('global_state')")
-    )
-    file_id = next((f for f in global_state[module]["files"] if f != "data"), None)
+    # The state entry is created asynchronously after the change event, so
+    # poll for it instead of reading global_state once.
+    file_id = None
+    deadline = time.time() + 30
+    while time.time() < deadline:
+        new_files = set(get_module_files(page, module)) - files_before
+        if new_files:
+            file_id = new_files.pop()
+            break
+        time.sleep(1)
+    if not file_id:
+        page.screenshot(path=f"screenshots/{module}_04_upload_not_registered.png")
+        raise AssertionError(f"{module}: uploaded file never appeared in the app state")
     logger.info(f"File ID: {file_id}")
 
     start_time = time.time()
@@ -108,23 +162,35 @@ def upload_and_process(page, module: str) -> str | None:
 
     while (time.time() - start_time) < max_wait_seconds:
         try:
-            current_status = page.locator(f"#status-text-{file_id}").text_content()
+            current_status = page.locator(f"#status-cell-{file_id}").text_content(
+                timeout=10 * 1000
+            )
             logger.info(f"Processing status: {current_status}")
             if "Ready" in current_status:
                 logger.info("✓ File processing completed")
-                page.screenshot(path="screenshots/04_processing_completed.png")
+                page.screenshot(
+                    path=f"screenshots/{module}_04_processing_completed.png"
+                )
                 break
             elif "Error" in current_status or "Failed" in current_status:
                 logger.error(f"Processing failed: {current_status}")
-                page.screenshot(path="screenshots/04_processing_failed.png")
-                break
+                page.screenshot(path=f"screenshots/{module}_04_processing_failed.png")
+                raise AssertionError(
+                    f"{module}: file processing failed: {current_status}"
+                )
             time.sleep(10)
+        except AssertionError:
+            raise
         except Exception as e:
             logger.warning(f"Error checking status: {e}")
             time.sleep(10)
     else:
         logger.error("File processing timed out")
-        page.screenshot(path="screenshots/04_processing_timeout.png")
+        page.screenshot(path=f"screenshots/{module}_04_processing_timeout.png")
+        raise AssertionError(
+            f"{module}: file processing did not reach Ready within "
+            f"{UPLOAD_WAIT_TIMEOUT} minutes"
+        )
 
     # Try to accept results if available
     try:
@@ -145,13 +211,13 @@ def cleanup_file(page, module: str, file_id: str | None) -> None:
     logger.info("Attempting cleanup")
     try:
         delete_button = page.locator(f"#delete-button-{file_id}")
-        if delete_button.is_visible():
-            delete_button.click()
-            page.wait_for_timeout(2000)
-            logger.info("✓ Deleted file successfully")
-            page.screenshot(path=f"screenshots/{module}_cleanup_completed.png")
-        else:
-            logger.info("⚠️ Delete button not found")
+        delete_button.wait_for(state="visible", timeout=10 * 1000)
+        delete_button.click()
+        page.wait_for_selector(
+            f"#file-row-{file_id}", state="detached", timeout=30 * 1000
+        )
+        logger.info("✓ Deleted file successfully")
+        page.screenshot(path=f"screenshots/{module}_cleanup_completed.png")
     except Exception as e:
         logger.warning(f"Cleanup failed: {e}")
 
@@ -162,14 +228,21 @@ def per_component(page, module: str, submodules: dict[str, list[str]]) -> None:
 
     login(page, module)
     file_id = upload_and_process(page, module)
-    submit_and_verify(page, module, submodules)
-    cleanup_file(page, module, file_id)
+    try:
+        submit_and_verify(page, module, submodules)
+    finally:
+        # Always delete the uploaded file: a leftover output.pdf poisons the
+        # next run (same-name uploads are silently dropped by the app).
+        cleanup_file(page, module, file_id)
 
     logger.info("🎉 Test execution completed!")
 
 
 def per_component_textarea(
-    page, module: str, submodules: dict[str, list[str]], sample_text: str = "Sample text for testing."
+    page,
+    module: str,
+    submodules: dict[str, list[str]],
+    sample_text: str = "Sample text for testing.",
 ) -> None:
     """Test flow for textarea-input modules (review)."""
     logger.info(f"🚀 Starting {module} test workflow (textarea mode)")
@@ -202,6 +275,7 @@ def test_draft(page) -> None:
             "questions": ["q_1", "q_2", "q_3", "q_4", "q_5", "q_6"],
         },
     )
+
 
 def test_review(page) -> None:
     review_submodules = {
@@ -294,7 +368,6 @@ if __name__ == "__main__":
         per_component(
             page,
             module="qualify",
-            submodule="overall_assessment",
-            subsubmodules=["eligibility"],
+            submodules={"eligibility": ["summary"]},
         )
         browser.close()
