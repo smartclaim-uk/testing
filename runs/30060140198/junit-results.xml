@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="3" time="143.431" timestamp="2026-07-24T01:53:41.450392+00:00" hostname="runnervmvrwv9"><testcase classname="tests.run" name="test_draft" time="58.376" /><testcase classname="tests.run" name="test_review" time="50.090" /><testcase classname="tests.run" name="test_qualify" time="34.780"><failure message="playwright._impl._errors.TimeoutError: Timeout 30000ms exceeded.&#10;=========================== logs ===========================&#10;waiting for navigation to &quot;**/draft&quot; until 'load'&#10;  navigated to &quot;https://smartclaim.uk/login?&quot;&#10;============================================================">page = &lt;Page url='https://smartclaim.uk/login?'&gt;
+
+    def test_qualify(page) -&gt; None:
+        submodules = {
+            "eligibility": [
+                "summary",
+                "baseline_statements",
+                "internet_search",
+                "feedback",
+                "uncertainty_check",
+                "qualifying_activity",
+                "risk_factors",
+            ],
+            "narrative_content_coverage": [
+                "baseline",
+                "advance",
+                "uncertainty",
+                "resolution",
+            ],
+            "questions_for_client": [
+                "research",
+                "risk_factors",
+                "narrative_content_coverage",
+            ],
+        }
+    
+&gt;       per_component(
+            page,
+            module="qualify",
+            submodules=submodules,
+        )
+
+tests/run.py:352: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/run.py:229: in per_component
+    login(page, module)
+tests/run.py:33: in login
+    page.wait_for_url("**/draft")
+.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py:9162: in wait_for_url
+    self._sync(
+.venv/lib/python3.13/site-packages/playwright/_impl/_page.py:584: in wait_for_url
+    return await self._main_frame.wait_for_url(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:263: in wait_for_url
+    async with self.expect_navigation(
+.venv/lib/python3.13/site-packages/playwright/_impl/_event_context_manager.py:33: in __aexit__
+    await self._future
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def continuation() -&gt; Optional[Response]:
+&gt;       event = await waiter.result()
+                ^^^^^^^^^^^^^^^^^^^^^
+E       playwright._impl._errors.TimeoutError: Timeout 30000ms exceeded.
+E       =========================== logs ===========================
+E       waiting for navigation to "**/draft" until 'load'
+E         navigated to "https://smartclaim.uk/login?"
+E       ============================================================
+
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:239: TimeoutError</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,1052 @@
+[
+  {
+    "run_id": "30060140198",
+    "timestamp": "2026-07-24 01:56:08 UTC",
+    "date": "2026-07-24",
+    "time": "01:56:08",
+    "status": "Failed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 2,
+    "failed": 1,
+    "total_duration": 143.2,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 58.4,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 50.1,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "failed",
+        "duration": 34.8,
+        "message": "playwright._impl._errors.TimeoutError: Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/draft\" until 'load'\n  navigated to \"https://"
+      }
+    ],
+    "screenshot_count": 44,
+    "video_count": 3
+  },
+  {
+    "run_id": "29973109979",
+    "timestamp": "2026-07-23 02:01:27 UTC",
+    "date": "2026-07-23",
+    "time": "02:01:27",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 226.2,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 59.4,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 59.1,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 107.8,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "29884154109",
+    "timestamp": "2026-07-22 01:54:06 UTC",
+    "date": "2026-07-22",
+    "time": "01:54:06",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 207.5,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 55.2,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 94.1,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 58.2,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "29794212288",
+    "timestamp": "2026-07-21 01:53:30 UTC",
+    "date": "2026-07-21",
+    "time": "01:53:30",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 150.9,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 53.9,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 40.9,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 56.1,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "29711998619",
+    "timestamp": "2026-07-20 03:10:47 UTC",
+    "date": "2026-07-20",
+    "time": "03:10:47",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 211.9,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 56.7,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 89.3,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 66.0,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "29669228111",
+    "timestamp": "2026-07-19 01:54:38 UTC",
+    "date": "2026-07-19",
+    "time": "01:54:38",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 196.8,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 54.6,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 37.1,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 105.1,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "29625717093",
+    "timestamp": "2026-07-18 01:46:35 UTC",
+    "date": "2026-07-18",
+    "time": "01:46:35",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 207.1,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 51.7,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 47.9,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 107.5,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "29548525646",
+    "timestamp": "2026-07-17 01:55:43 UTC",
+    "date": "2026-07-17",
+    "time": "01:55:43",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 156.1,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 63.1,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 38.9,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 54.1,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "29465052091",
+    "timestamp": "2026-07-16 01:53:45 UTC",
+    "date": "2026-07-16",
+    "time": "01:53:45",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 258.8,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 61.0,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 92.3,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 105.4,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "29381719084",
+    "timestamp": "2026-07-15 01:32:55 UTC",
+    "date": "2026-07-15",
+    "time": "01:32:55",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 213.9,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 56.3,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 49.8,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 107.9,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "29299239092",
+    "timestamp": "2026-07-14 01:47:03 UTC",
+    "date": "2026-07-14",
+    "time": "01:47:03",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 211.6,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 55.9,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 46.3,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 109.4,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "29218407610",
+    "timestamp": "2026-07-13 01:59:15 UTC",
+    "date": "2026-07-13",
+    "time": "01:59:15",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 196.9,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 53.2,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 38.7,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 104.9,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "29175920544",
+    "timestamp": "2026-07-12 01:57:37 UTC",
+    "date": "2026-07-12",
+    "time": "01:57:37",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 226.3,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 49.4,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 71.9,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 105.0,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "29135338458",
+    "timestamp": "2026-07-11 01:54:30 UTC",
+    "date": "2026-07-11",
+    "time": "01:54:30",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 203.3,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 55.2,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 38.7,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 109.4,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "29063779784",
+    "timestamp": "2026-07-10 02:07:25 UTC",
+    "date": "2026-07-10",
+    "time": "02:07:25",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 214.1,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 52.3,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 55.8,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 106.0,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "28999247959",
+    "timestamp": "2026-07-09 06:56:41 UTC",
+    "date": "2026-07-09",
+    "time": "06:56:41",
+    "status": "Passed",
+    "commit": "7816bdc52caa961e81a5875c24a4eea1ef1adfe8",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 283.9,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 68.7,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 92.7,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 122.6,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 62,
+    "video_count": 3
+  },
+  {
+    "run_id": "28988929126",
+    "timestamp": "2026-07-09 02:14:53 UTC",
+    "date": "2026-07-09",
+    "time": "02:14:53",
+    "status": "Passed",
+    "commit": "f415094caf3a2ead5119160df89211311ac9913a",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 565.4,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 237.9,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 92.8,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 234.7,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 40,
+    "video_count": 3
+  },
+  {
+    "run_id": "28911693682",
+    "timestamp": "2026-07-08 02:01:43 UTC",
+    "date": "2026-07-08",
+    "time": "02:01:43",
+    "status": "Passed",
+    "commit": "f415094caf3a2ead5119160df89211311ac9913a",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 562.7,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 236.1,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 91.4,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 235.2,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 40,
+    "video_count": 3
+  },
+  {
+    "run_id": "28836589988",
+    "timestamp": "2026-07-07 02:20:29 UTC",
+    "date": "2026-07-07",
+    "time": "02:20:29",
+    "status": "Passed",
+    "commit": "f415094caf3a2ead5119160df89211311ac9913a",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 511.8,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 238.5,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 37.6,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 235.7,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 40,
+    "video_count": 3
+  },
+  {
+    "run_id": "28763752767",
+    "timestamp": "2026-07-06 02:32:10 UTC",
+    "date": "2026-07-06",
+    "time": "02:32:10",
+    "status": "Passed",
+    "commit": "f415094caf3a2ead5119160df89211311ac9913a",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 517.4,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 236.9,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 44.8,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 235.7,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 40,
+    "video_count": 3
+  },
+  {
+    "run_id": "28726608666",
+    "timestamp": "2026-07-05 02:19:59 UTC",
+    "date": "2026-07-05",
+    "time": "02:19:59",
+    "status": "Passed",
+    "commit": "f415094caf3a2ead5119160df89211311ac9913a",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 511.5,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 237.1,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 39.1,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 235.3,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 40,
+    "video_count": 3
+  },
+  {
+    "run_id": "28691571944",
+    "timestamp": "2026-07-04 02:12:09 UTC",
+    "date": "2026-07-04",
+    "time": "02:12:09",
+    "status": "Passed",
+    "commit": "f415094caf3a2ead5119160df89211311ac9913a",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 529.1,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 237.2,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 56.0,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 235.9,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 40,
+    "video_count": 3
+  },
+  {
+    "run_id": "28633644791",
+    "timestamp": "2026-07-03 02:14:02 UTC",
+    "date": "2026-07-03",
+    "time": "02:14:02",
+    "status": "Passed",
+    "commit": "f415094caf3a2ead5119160df89211311ac9913a",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 521.6,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 237.1,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 50.0,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 234.5,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 41,
+    "video_count": 3
+  },
+  {
+    "run_id": "28561140058",
+    "timestamp": "2026-07-02 02:39:12 UTC",
+    "date": "2026-07-02",
+    "time": "02:39:12",
+    "status": "Passed",
+    "commit": "f415094caf3a2ead5119160df89211311ac9913a",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 559.8,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 238.0,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 87.0,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 234.8,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 40,
+    "video_count": 3
+  },
+  {
+    "run_id": "28489748172",
+    "timestamp": "2026-07-01 02:50:11 UTC",
+    "date": "2026-07-01",
+    "time": "02:50:11",
+    "status": "Passed",
+    "commit": "f415094caf3a2ead5119160df89211311ac9913a",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 564.0,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 235.8,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 92.5,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 235.8,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 40,
+    "video_count": 3
+  },
+  {
+    "run_id": "28416345320",
+    "timestamp": "2026-06-30 02:43:03 UTC",
+    "date": "2026-06-30",
+    "time": "02:43:03",
+    "status": "Passed",
+    "commit": "f415094caf3a2ead5119160df89211311ac9913a",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 524.4,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 237.9,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 51.2,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 235.4,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 40,
+    "video_count": 3
+  },
+  {
+    "run_id": "28345178261",
+    "timestamp": "2026-06-29 02:48:33 UTC",
+    "date": "2026-06-29",
+    "time": "02:48:33",
+    "status": "Passed",
+    "commit": "f415094caf3a2ead5119160df89211311ac9913a",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 511.0,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 237.9,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 38.1,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 235.0,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 40,
+    "video_count": 3
+  },
+  {
+    "run_id": "28309057108",
+    "timestamp": "2026-06-28 02:48:20 UTC",
+    "date": "2026-06-28",
+    "time": "02:48:20",
+    "status": "Passed",
+    "commit": "f415094caf3a2ead5119160df89211311ac9913a",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 508.4,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 238.0,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 34.8,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 235.6,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 40,
+    "video_count": 3
+  },
+  {
+    "run_id": "28275850881",
+    "timestamp": "2026-06-27 02:36:43 UTC",
+    "date": "2026-06-27",
+    "time": "02:36:43",
+    "status": "Passed",
+    "commit": "f415094caf3a2ead5119160df89211311ac9913a",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 561.6,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 238.0,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 87.9,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 235.7,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 40,
+    "video_count": 3
+  },
+  {
+    "run_id": "28213448327",
+    "timestamp": "2026-06-26 02:42:55 UTC",
+    "date": "2026-06-26",
+    "time": "02:42:55",
+    "status": "Passed",
+    "commit": "f415094caf3a2ead5119160df89211311ac9913a",
+    "branch": "main",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration": 524.3,
+    "tests": [
+      {
+        "name": "test_draft",
+        "result": "passed",
+        "duration": 237.8,
+        "message": ""
+      },
+      {
+        "name": "test_review",
+        "result": "passed",
+        "duration": 51.4,
+        "message": ""
+      },
+      {
+        "name": "test_qualify",
+        "result": "passed",
+        "duration": 235.1,
+        "message": ""
+      }
+    ],
+    "screenshot_count": 40,
+    "video_count": 3
+  }
+]
