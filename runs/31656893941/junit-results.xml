@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="3" time="1313.579" timestamp="2026-08-13T01:11:38.062689+00:00" hostname="runnervmvrwv9"><testcase classname="tests.run" name="test_draft" time="52.785" /><testcase classname="tests.run" name="test_review" time="102.506" /><testcase classname="tests.run" name="test_qualify" time="1158.247"><failure message="AssertionError: qualify: 3/14 submodules did not generate content: eligibility/summary, eligibility/feedback, questions_for_client/research&#10;assert not ['eligibility/summary', 'eligibility/feedback', 'questions_for_client/research']">page = &lt;Page url='https://smartclaim.uk/qualify'&gt;
+
+    def test_qualify(page) -&gt; None:
+        submodules = {
+            "eligibility": [
+                "summary",
+                "baseline_statements",
+                "internet_search",
+                "feedback",
+                "uncertainty_check",
+                "qualifying_activity",
+                "risk_factors",
+            ],
+            "narrative_content_coverage": [
+                "baseline",
+                "advance",
+                "uncertainty",
+                "resolution",
+            ],
+            "questions_for_client": [
+                "research",
+                "risk_factors",
+                "narrative_content_coverage",
+            ],
+        }
+    
+&gt;       per_component(
+            page,
+            module="qualify",
+            submodules=submodules,
+        )
+
+tests/run.py:352: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/run.py:232: in per_component
+    submit_and_verify(page, module, submodules)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+page = &lt;Page url='https://smartclaim.uk/qualify'&gt;, module = 'qualify'
+submodules = {'eligibility': ['summary', 'baseline_statements', 'internet_search', 'feedback', 'uncertainty_check', 'qualifying_act...nce', 'uncertainty', 'resolution'], 'questions_for_client': ['research', 'risk_factors', 'narrative_content_coverage']}
+
+    def submit_and_verify(page, module: str, submodules: dict[str, list[str]]) -&gt; None:
+        """Click Submit and verify all submodule content is generated."""
+        logger.info("Clicking Submit and verifying content generation")
+        total = sum(len(v) for v in submodules.values())
+        successful = 0
+        failed: list[str] = []
+    
+        try:
+            # Submit is rendered but disabled until the module is ready (e.g. all
+            # files Ready), so wait for enabled rather than visible.
+            submit_button = page.get_by_role("button", name="Submit")
+            expect(submit_button).to_be_enabled(timeout=60 * 1000)
+            submit_button.click()
+            logger.info("✓ Submitted successfully")
+        except Exception as e:
+            logger.error(f"Submit failed: {e}")
+            page.screenshot(path=f"screenshots/{module}_submit_failed.png")
+            raise
+    
+        for submod, subsubmods in submodules.items():
+            for subsubmod in subsubmods:
+                try:
+                    logger.info(f"Waiting for content: {module}_{submod}_{subsubmod}")
+                    content_selector = f"#main-content-{module}_{submod}_{subsubmod}"
+                    expect(page.locator(content_selector)).not_to_contain_text(
+                        "No content", timeout=GENERATE_WAIT_TIMEOUT * 60 * 1000
+                    )
+                    expect(page.locator(content_selector)).not_to_be_empty(
+                        timeout=GENERATE_WAIT_TIMEOUT * 60 * 1000
+                    )
+                    logger.info(f"✓ {submod}/{subsubmod}: Content generated")
+                    page.screenshot(
+                        path=f"screenshots/{module}_{submod}_{subsubmod}_generated.png"
+                    )
+                    successful += 1
+                except Exception as e:
+                    logger.error(f"{submod}/{subsubmod} failed: {e}")
+                    page.screenshot(
+                        path=f"screenshots/{module}_{submod}_{subsubmod}_failed.png"
+                    )
+                    failed.append(f"{submod}/{subsubmod}")
+                    continue
+    
+        logger.info(f"✓ Generated {successful}/{total} submodules")
+&gt;       assert not failed, (
+            f"{module}: {len(failed)}/{total} submodules did not generate content: "
+            f"{', '.join(failed)}"
+        )
+E       AssertionError: qualify: 3/14 submodules did not generate content: eligibility/summary, eligibility/feedback, questions_for_client/research
+E       assert not ['eligibility/summary', 'eligibility/feedback', 'questions_for_client/research']
+
+tests/run.py:86: AssertionError</failure></testcase></testsuite></testsuites>
