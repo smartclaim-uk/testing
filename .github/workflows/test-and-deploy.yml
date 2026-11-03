@@ -29,6 +29,8 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    outputs:
+      report_upload: ${{ steps.upload_report.outcome }}
 
     steps:
     - name: Checkout repository
@@ -111,6 +113,41 @@ jobs:
           echo "Telegram credentials not configured, skipping notification"
         fi
 
+    - name: Send Telegram notification on failure
+      # Also when the tests could not run at all. Not for pull requests: their
+      # check already shows the failure.
+      if: github.event_name != 'pull_request' && (failure() || steps.test_run.outputs.test_status == 'failure')
+      env:
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        TEST_STATUS: ${{ steps.test_run.outputs.test_status }}
+      run: |
+        if [ -n "$TELEGRAM_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+          REPO_OWNER="${{ github.repository_owner }}"
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+          PAGES_URL="https://${REPO_OWNER}.github.io/${REPO_NAME}/"
+
+          if [ "$TEST_STATUS" = "failure" ]; then
+            MESSAGE="❌ SmartClaim tests failed!%0A%0A"
+          else
+            MESSAGE="❌ SmartClaim tests could not run!%0A%0A"
+          fi
+          MESSAGE="${MESSAGE}📋 Repository: ${{ github.repository }}%0A"
+          MESSAGE="${MESSAGE}🔀 Branch: ${{ github.ref_name }}%0A"
+          MESSAGE="${MESSAGE}👤 Actor: ${{ github.actor }}%0A"
+          MESSAGE="${MESSAGE}📝 Commit: ${{ github.sha }}%0A"
+          MESSAGE="${MESSAGE}📊 Report: ${PAGES_URL}%0A"
+          MESSAGE="${MESSAGE}🔗 Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=${MESSAGE}" \
+            -d "parse_mode=HTML" \
+            -d "disable_web_page_preview=true" || echo "Failed to send Telegram notification"
+        else
+          echo "Telegram credentials not configured, skipping notification"
+        fi
+
     - name: Fix media links in HTML report
       run: python .github/workflows/fix-html-media.py
       continue-on-error: true
@@ -175,6 +212,7 @@ jobs:
         python .github/workflows/create-index.py
 
     - name: Upload artifact
+      id: upload_report
       uses: actions/upload-pages-artifact@v5
       with:
         path: '_site'
@@ -197,10 +235,18 @@ jobs:
         # tree, so repo size stays bounded by create-index.py's pruning
         git push --force "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" test-history
 
+    - name: Fail the run when tests failed
+      # Last, so the report is still built, saved and published.
+      if: steps.test_run.outputs.test_status == 'failure'
+      run: |
+        echo "::error::Playwright tests failed, see the report"
+        exit 1
+
   deploy:
     # PR runs only validate tests; the github-pages environment only allows
-    # deployments from main, and PRs shouldn't overwrite the published site
-    if: github.event_name != 'pull_request'
+    # deployments from main, and PRs shouldn't overwrite the published site.
+    # Also after failed tests: that report is the one people need.
+    if: ${{ !cancelled() && github.event_name != 'pull_request' && needs.test.outputs.report_upload == 'success' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
