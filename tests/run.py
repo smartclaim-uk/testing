@@ -137,7 +137,9 @@ def upload_and_process(page, module: str) -> str:
     delete_leftover_uploads(page, module, "output.pdf")
     files_before = set(get_module_files(page, module))
 
-    page.locator("#file-upload").set_input_files("output.pdf")
+    # file-upload until app commit 40a6ca6, file-upload-<uuid> after it (each
+    # uploader its own id); Draft and Qualify have one uploader.
+    page.locator("input[type=file][id^=file-upload]").first.set_input_files("output.pdf")
     page.screenshot(path=f"screenshots/{module}_03_file_uploaded.png")
     logger.info("✓ File uploaded successfully")
 
