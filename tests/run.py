@@ -18,7 +18,11 @@ os.makedirs("screenshots", exist_ok=True)
 def login(page, module: str) -> None:
     """Login and navigate to the given module page."""
     logger.info("Step 1: Performing login")
-    page.goto(url=f"{BASE_URL}/login")
+    # The login form is prerendered, so it paints before the app has hydrated
+    # it, and a fill + click in that gap sends no login request at all. The
+    # page only calls /me from onMount, so once that answers the form is live.
+    with page.expect_response("**/me"):
+        page.goto(url=f"{BASE_URL}/login")
     page.screenshot(path="screenshots/01_login_page.png")
     logger.info("✓ Navigated to login page")
 
