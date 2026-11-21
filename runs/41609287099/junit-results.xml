@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="3" time="98.380" timestamp="2026-11-03T09:14:11.575608+00:00" hostname="runnervmnwato"><testcase classname="tests.run" name="test_draft" time="34.265"><failure message="playwright._impl._errors.TimeoutError: Timeout 30000ms exceeded.&#10;=========================== logs ===========================&#10;waiting for navigation to &quot;**/draft&quot; until 'load'&#10;============================================================">page = &lt;Page url='https://smartclaim.uk/login'&gt;
+
+    def test_draft(page) -&gt; None:
+&gt;       per_component(
+            page,
+            module="draft",
+            submodules={
+                "questions": ["q_1", "q_2", "q_3", "q_4", "q_5", "q_6"],
+            },
+        )
+
+tests/run.py:273: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/run.py:231: in per_component
+    login(page, module)
+tests/run.py:33: in login
+    page.wait_for_url("**/draft")
+.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py:21446: in wait_for_url
+    self._sync(
+.venv/lib/python3.13/site-packages/playwright/_impl/_page.py:592: in wait_for_url
+    return await self._main_frame.wait_for_url(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:289: in wait_for_url
+    async with self.expect_navigation(
+.venv/lib/python3.13/site-packages/playwright/_impl/_event_context_manager.py:33: in __aexit__
+    await self._future
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def continuation() -&gt; Optional[Response]:
+&gt;       event = await waiter.result()
+                ^^^^^^^^^^^^^^^^^^^^^
+E       playwright._impl._errors.TimeoutError: Timeout 30000ms exceeded.
+E       =========================== logs ===========================
+E       waiting for navigation to "**/draft" until 'load'
+E       ============================================================
+
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:265: TimeoutError</failure></testcase><testcase classname="tests.run" name="test_review" time="31.725"><failure message="playwright._impl._errors.TimeoutError: Timeout 30000ms exceeded.&#10;=========================== logs ===========================&#10;waiting for navigation to &quot;**/draft&quot; until 'load'&#10;============================================================">page = &lt;Page url='https://smartclaim.uk/login'&gt;
+
+    def test_review(page) -&gt; None:
+        review_submodules = {
+            "eligibility": [
+                "overall_eligibility",
+                "baseline_statements",
+                "internet_search",
+                "feedback",
+                "uncertainty_check",
+                "qualifying_activity",
+                "risk_factors",
+            ],
+            "baseline": ["comprehensiveness", "focus", "phrasing", "grammar"],
+            "advance": [
+                "comprehensiveness",
+                "focus",
+                "phrasing",
+                "guideline_references",
+                "grammar",
+            ],
+            "uncertainty": [
+                "comprehensiveness",
+                "focus",
+                "phrasing",
+                "guideline_references",
+                "grammar",
+            ],
+            "resolution": [
+                "comprehensiveness",
+                "focus",
+                "phrasing",
+                "guideline_references",
+                "grammar",
+            ],
+            "overall": ["coherence", "competent_professionals"],
+            "questions_for_client": [
+                "research",
+                "risk_factors",
+                "narrative_content_coverage",
+            ],
+        }
+    
+&gt;       per_component_textarea(
+            page,
+            module="review",
+            submodules=review_submodules,
+        )
+
+tests/run.py:323: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/run.py:252: in per_component_textarea
+    login(page, module)
+tests/run.py:33: in login
+    page.wait_for_url("**/draft")
+.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py:21446: in wait_for_url
+    self._sync(
+.venv/lib/python3.13/site-packages/playwright/_impl/_page.py:592: in wait_for_url
+    return await self._main_frame.wait_for_url(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:289: in wait_for_url
+    async with self.expect_navigation(
+.venv/lib/python3.13/site-packages/playwright/_impl/_event_context_manager.py:33: in __aexit__
+    await self._future
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def continuation() -&gt; Optional[Response]:
+&gt;       event = await waiter.result()
+                ^^^^^^^^^^^^^^^^^^^^^
+E       playwright._impl._errors.TimeoutError: Timeout 30000ms exceeded.
+E       =========================== logs ===========================
+E       waiting for navigation to "**/draft" until 'load'
+E       ============================================================
+
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:265: TimeoutError</failure></testcase><testcase classname="tests.run" name="test_qualify" time="31.845"><failure message="playwright._impl._errors.TimeoutError: Timeout 30000ms exceeded.&#10;=========================== logs ===========================&#10;waiting for navigation to &quot;**/draft&quot; until 'load'&#10;============================================================">page = &lt;Page url='https://smartclaim.uk/login'&gt;
+
+    def test_qualify(page) -&gt; None:
+        submodules = {
+            "eligibility": [
+                "summary",
+                "baseline_statements",
+                "internet_search",
+                "feedback",
+                "uncertainty_check",
+                "qualifying_activity",
+                "risk_factors",
+            ],
+            "narrative_content_coverage": [
+                "baseline",
+                "advance",
+                "uncertainty",
+                "resolution",
+            ],
+            "questions_for_client": [
+                "research",
+                "risk_factors",
+                "narrative_content_coverage",
+            ],
+        }
+    
+&gt;       per_component(
+            page,
+            module="qualify",
+            submodules=submodules,
+        )
+
+tests/run.py:354: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/run.py:231: in per_component
+    login(page, module)
+tests/run.py:33: in login
+    page.wait_for_url("**/draft")
+.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py:21446: in wait_for_url
+    self._sync(
+.venv/lib/python3.13/site-packages/playwright/_impl/_page.py:592: in wait_for_url
+    return await self._main_frame.wait_for_url(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:289: in wait_for_url
+    async with self.expect_navigation(
+.venv/lib/python3.13/site-packages/playwright/_impl/_event_context_manager.py:33: in __aexit__
+    await self._future
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def continuation() -&gt; Optional[Response]:
+&gt;       event = await waiter.result()
+                ^^^^^^^^^^^^^^^^^^^^^
+E       playwright._impl._errors.TimeoutError: Timeout 30000ms exceeded.
+E       =========================== logs ===========================
+E       waiting for navigation to "**/draft" until 'load'
+E       ============================================================
+
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:265: TimeoutError</failure></testcase></testsuite></testsuites>
